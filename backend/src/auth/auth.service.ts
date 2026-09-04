@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/auth.dto';
+import { TwoFactorService } from './two-factor.service';
 
 export interface AuthUser {
   id: number;
@@ -17,6 +18,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
+    private twoFactor: TwoFactorService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<AuthUser | null> {
@@ -41,8 +43,43 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.validateUser(dto.email, dto.password);
-    if (!user) throw new UnauthorizedException('Credenciales inválidas');
+    const dbUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+    if (!dbUser || dbUser.status !== 'active') {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+    const valid = await bcrypt.compare(dto.password, dbUser.passwordHash);
+    if (!valid) throw new UnauthorizedException('Credenciales inválidas');
+
+    if (this.twoFactor.userHas2FA(dbUser)) {
+      const tempToken = this.twoFactor.createTempToken(dbUser.id);
+      if (dbUser.telegramEnabled) {
+        await this.twoFactor.sendTelegramCode(dbUser.id);
+      }
+      return {
+        requiresTwoFactor: true,
+        tempToken,
+        methods: this.twoFactor.getMethods(dbUser),
+      };
+    }
+
+    const user = await this.getProfile(dbUser.id);
+    return this.issueToken(user);
+  }
+
+  async loginByUserId(userId: number) {
+    const user = await this.getProfile(userId);
+    return this.issueToken(user);
+  }
+
+  async verifyTwoFactor(tempToken: string, code: string) {
+    const userId = this.twoFactor.verifyTempToken(tempToken);
+    const valid = await this.twoFactor.verifyCode(userId, code);
+    if (!valid) throw new UnauthorizedException('Código 2FA inválido');
+    const user = await this.getProfile(userId);
+    return this.issueToken(user);
+  }
+
+  issueToken(user: AuthUser) {
     const token = this.jwt.sign({
       sub: user.id,
       email: user.email,

@@ -5,6 +5,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/login', name: 'login', component: () => import('@/views/LoginView.vue'), meta: { guest: true } },
+    { path: '/qr-auth', name: 'qr-auth', component: () => import('@/views/QrAuthView.vue'), meta: { guest: true } },
     {
       path: '/',
       component: () => import('@/layouts/AppLayout.vue'),
@@ -17,6 +18,7 @@ const router = createRouter({
         { path: 'plantillas', name: 'plantillas', component: () => import('@/views/PlantillasView.vue') },
         { path: 'usuarios', name: 'usuarios', component: () => import('@/views/UsuariosView.vue') },
         { path: 'notificaciones', name: 'notificaciones', component: () => import('@/views/NotificacionesView.vue') },
+        { path: 'seguridad', name: 'seguridad', component: () => import('@/views/SecurityView.vue') },
         { path: 'version', name: 'version', component: () => import('@/views/VersionView.vue') },
       ],
     },

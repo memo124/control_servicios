@@ -5,6 +5,8 @@ import EstadoBadge from '@/components/EstadoBadge.vue';
 import FormField from '@/components/FormField.vue';
 import InputMoney from '@/components/InputMoney.vue';
 import { useAuthStore } from '@/stores/auth';
+import { useToast } from '@/composables/useToast';
+import { useConfirm } from '@/composables/useConfirm';
 
 interface Suscripcion {
   suscripcion_id: number;
@@ -42,6 +44,8 @@ interface Cliente {
 }
 
 const auth = useAuthStore();
+const toast = useToast();
+const { confirm } = useConfirm();
 const items = ref<Suscripcion[]>([]);
 const cuentas = ref<Cuenta[]>([]);
 const clientes = ref<Cliente[]>([]);
@@ -130,6 +134,7 @@ function openEdit(s: Suscripcion) {
 
 async function save() {
   saving.value = true;
+  const isEdit = !!editing.value;
   try {
     const payload = { ...form.value };
     if (editing.value) {
@@ -139,15 +144,29 @@ async function save() {
     }
     showForm.value = false;
     await load();
+    toast.success(isEdit ? 'Suscripción actualizada' : 'Suscripción creada');
+  } catch {
+    toast.error('Error', 'No se pudo guardar la suscripción');
   } finally {
     saving.value = false;
   }
 }
 
 async function remove(s: Suscripcion) {
-  if (!confirm(`¿Eliminar suscripción de ${s.cliente_nombre} en ${s.plataforma}?`)) return;
-  await api.delete(`/suscripciones/${s.suscripcion_id}`);
-  await load();
+  const ok = await confirm({
+    title: 'Eliminar suscripción',
+    message: `¿Eliminar la suscripción de ${s.cliente_nombre} en ${s.plataforma}?`,
+    confirmText: 'Eliminar',
+    variant: 'danger',
+  });
+  if (!ok) return;
+  try {
+    await api.delete(`/suscripciones/${s.suscripcion_id}`);
+    await load();
+    toast.success('Eliminada', 'Suscripción eliminada correctamente');
+  } catch {
+    toast.error('Error', 'No se pudo eliminar');
+  }
 }
 
 watch(

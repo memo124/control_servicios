@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, Length, MinLength } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -23,4 +23,45 @@ export class RegisterUserDto {
 
   @IsString()
   roleSlug!: string;
+}
+
+export class Verify2FADto {
+  @IsString()
+  @IsNotEmpty()
+  tempToken!: string;
+
+  @IsString()
+  @Length(6, 6)
+  code!: string;
+}
+
+export class SetupTelegramDto {
+  @IsString()
+  @IsNotEmpty()
+  chatId!: string;
+}
+
+export class ConfirmTotpDto {
+  @IsString()
+  @Length(6, 6)
+  code!: string;
+}
+
+export class QrAuthorizeDto {
+  @IsString()
+  @IsNotEmpty()
+  token!: string;
+
+  @IsEmail()
+  email!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  password!: string;
+}
+
+export class QrPollDto {
+  @IsString()
+  @IsNotEmpty()
+  token!: string;
 }

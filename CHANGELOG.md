@@ -24,6 +24,15 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Autenticación JWT con bcrypt para contraseñas
 - Guards de permisos por endpoint
 
+## [1.2.0] - 2026-09-04
+
+### Added
+- Toasts y diálogos de confirmación personalizados (sin dependencias npm)
+- Tema oscuro, claro y automático (según navegador)
+- 2FA con Telegram (códigos por bot) y TOTP con QR (Google Authenticator)
+- Login con QR entre dispositivos
+- Vista de Seguridad para configurar 2FA
+
 ## [1.1.0] - 2026-09-04
 
 ### Added
@@ -39,5 +48,6 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.2.0]: https://github.com/memo124/control_servicios/releases/tag/v1.2.0
 [1.1.0]: https://github.com/memo124/control_servicios/releases/tag/v1.1.0
 [1.0.1]: https://github.com/memo124/control_servicios/releases/tag/v1.0.1

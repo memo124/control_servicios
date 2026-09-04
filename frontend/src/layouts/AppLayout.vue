@@ -2,9 +2,10 @@
 import { ref, computed } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import {
-  LayoutDashboard, Users, CreditCard, Building2, Mail, UserCog, Bell, Info, Menu, X, LogOut,
+  LayoutDashboard, Users, CreditCard, Building2, Mail, UserCog, Bell, Info, Menu, X, LogOut, Shield,
 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
+import ThemeToggle from '@/components/ui/ThemeToggle.vue';
 
 const auth = useAuthStore();
 const route = useRoute();
@@ -18,6 +19,7 @@ const navItems = computed(() => [
   { to: '/cuentas', icon: Building2, label: 'Cuentas', show: auth.hasPermission('cuentas.gestionar') },
   { to: '/plantillas', icon: Mail, label: 'Plantillas', show: auth.hasPermission('plantillas.editar') },
   { to: '/notificaciones', icon: Bell, label: 'Notificaciones', show: auth.hasPermission('correos.enviar') },
+  { to: '/seguridad', icon: Shield, label: 'Seguridad', show: true },
   { to: '/usuarios', icon: UserCog, label: 'Usuarios', show: auth.hasPermission('usuarios.gestionar') },
   { to: '/version', icon: Info, label: 'Versión', show: true },
 ].filter((i) => i.show));
@@ -69,8 +71,9 @@ function isActive(path: string) {
         </RouterLink>
       </nav>
 
-      <div class="p-4 border-t border-slate-800">
-        <div v-if="!sidebarCollapsed" class="text-xs text-slate-500 mb-2 truncate">{{ auth.user?.email }}</div>
+      <div class="p-4 border-t border-themed space-y-3">
+        <ThemeToggle v-if="!sidebarCollapsed" />
+        <div v-if="!sidebarCollapsed" class="text-xs text-themed-muted truncate">{{ auth.user?.email }}</div>
         <button class="btn-secondary w-full flex items-center justify-center gap-2 text-sm" @click="auth.logout(); $router.push('/login')">
           <LogOut class="w-4 h-4" />
           <span v-if="!sidebarCollapsed">Salir</span>
