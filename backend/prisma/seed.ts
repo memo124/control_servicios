@@ -222,6 +222,23 @@ async function main() {
     },
   });
 
+  const changelogEntries = [
+    {
+      version: '1.2.1',
+      titulo: 'Corrección tema claro',
+      descripcion:
+        'Variables CSS centralizadas y tablas/formularios adaptados al tema claro. Se eliminaron estilos oscuros hardcodeados en todas las vistas. Ver docs/THEMES.md.',
+      tipo: 'patch',
+    },
+  ];
+
+  for (const entry of changelogEntries) {
+    const exists = await prisma.systemVersion.findFirst({ where: { version: entry.version } });
+    if (!exists) {
+      await prisma.systemVersion.create({ data: entry });
+    }
+  }
+
   console.log('Seed completado. Admin: admin@controlservicios.local / Admin123!');
 }
 

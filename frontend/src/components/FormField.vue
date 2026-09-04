@@ -8,11 +8,11 @@ defineProps<{
 
 <template>
   <div>
-    <label class="block text-sm font-medium text-slate-200 mb-1">
+    <label class="block text-sm font-medium text-themed-primary mb-1">
       {{ label }}
-      <span v-if="required" class="text-red-400">*</span>
+      <span v-if="required" class="text-danger">*</span>
     </label>
-    <p v-if="hint" class="text-xs text-slate-500 mb-1.5">{{ hint }}</p>
+    <p v-if="hint" class="text-xs text-themed-muted mb-1.5">{{ hint }}</p>
     <slot />
   </div>
 </template>

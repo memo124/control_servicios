@@ -30,29 +30,27 @@ function isActive(path: string) {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col lg:flex-row">
-    <!-- Mobile overlay -->
+  <div class="min-h-screen flex flex-col lg:flex-row bg-themed">
     <div
       v-if="sidebarOpen"
-      class="fixed inset-0 bg-black/60 z-40 lg:hidden"
+      class="fixed inset-0 modal-overlay z-40 lg:hidden"
       @click="sidebarOpen = false"
     />
 
-    <!-- Sidebar -->
     <aside
       :class="[
-        'fixed lg:sticky top-0 h-screen z-50 bg-slate-900 border-r border-slate-800 flex flex-col transition-all duration-300',
+        'sidebar fixed lg:sticky top-0 h-screen z-50 flex flex-col transition-all duration-300',
         sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
         sidebarCollapsed ? 'lg:w-16' : 'w-64',
       ]"
     >
-      <div class="p-4 flex items-center justify-between border-b border-slate-800">
-        <h1 v-if="!sidebarCollapsed" class="font-bold text-lg text-indigo-400">Control Servicios</h1>
-        <button class="hidden lg:block p-1 text-slate-400 hover:text-white" @click="sidebarCollapsed = !sidebarCollapsed">
+      <div class="p-4 flex items-center justify-between border-b border-themed">
+        <h1 v-if="!sidebarCollapsed" class="font-bold text-lg text-brand">Control Servicios</h1>
+        <button class="hidden lg:block p-1 text-themed-muted hover:text-themed-primary" @click="sidebarCollapsed = !sidebarCollapsed">
           <Menu v-if="sidebarCollapsed" class="w-5 h-5" />
           <X v-else class="w-5 h-5" />
         </button>
-        <button class="lg:hidden p-1" @click="sidebarOpen = false"><X class="w-5 h-5" /></button>
+        <button class="lg:hidden p-1 text-themed-primary" @click="sidebarOpen = false"><X class="w-5 h-5" /></button>
       </div>
 
       <nav class="flex-1 p-3 space-y-1 overflow-y-auto">
@@ -60,10 +58,7 @@ function isActive(path: string) {
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          :class="[
-            'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-            isActive(item.to) ? 'bg-indigo-600/20 text-indigo-300' : 'text-slate-400 hover:bg-slate-800 hover:text-white',
-          ]"
+          :class="['nav-link', isActive(item.to) && 'nav-link-active']"
           @click="sidebarOpen = false"
         >
           <component :is="item.icon" class="w-5 h-5 shrink-0" />
@@ -81,24 +76,22 @@ function isActive(path: string) {
       </div>
     </aside>
 
-    <!-- Main -->
     <div class="flex-1 flex flex-col min-h-screen">
-      <header class="lg:hidden sticky top-0 z-30 bg-slate-900/95 backdrop-blur border-b border-slate-800 px-4 py-3 flex items-center gap-3">
-        <button @click="sidebarOpen = true"><Menu class="w-6 h-6" /></button>
-        <span class="font-semibold text-indigo-400">Control Servicios</span>
+      <header class="mobile-header lg:hidden sticky top-0 z-30 backdrop-blur px-4 py-3 flex items-center gap-3">
+        <button class="text-themed-primary" @click="sidebarOpen = true"><Menu class="w-6 h-6" /></button>
+        <span class="font-semibold text-brand">Control Servicios</span>
       </header>
 
       <main class="flex-1 p-4 md:p-6 lg:p-8 overflow-x-hidden">
         <RouterView />
       </main>
 
-      <!-- Mobile bottom nav -->
-      <nav class="lg:hidden fixed bottom-0 inset-x-0 bg-slate-900 border-t border-slate-800 flex justify-around py-2 z-30">
+      <nav class="mobile-nav lg:hidden fixed bottom-0 inset-x-0 flex justify-around py-2 z-30">
         <RouterLink
           v-for="item in navItems.slice(0, 5)"
           :key="item.to"
           :to="item.to"
-          :class="['flex flex-col items-center gap-0.5 px-2 py-1 text-xs', isActive(item.to) ? 'text-indigo-400' : 'text-slate-500']"
+          :class="['flex flex-col items-center gap-0.5 px-2 py-1 text-xs', isActive(item.to) ? 'text-brand' : 'text-themed-muted']"
         >
           <component :is="item.icon" class="w-5 h-5" />
           <span>{{ item.label }}</span>

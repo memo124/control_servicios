@@ -1,4 +1,4 @@
-# Control Servicios v1.0.0
+# Control Servicios v1.2.1
 
 Plataforma full-stack para administración de suscripciones de streaming, control financiero de ganancias y envío de avisos de cobro por correo electrónico.
 
@@ -99,7 +99,20 @@ docker compose up -d redis
 
 ## Versionamiento
 
-El historial de versiones se gestiona en la tabla `system_versions` y es visible en la UI en `/version`.
+El historial de versiones se gestiona en la tabla `system_versions` y es visible en la UI en `/version`. Los cambios detallados están en [CHANGELOG.md](CHANGELOG.md).
+
+### Tema claro / oscuro
+
+Ver [docs/THEMES.md](docs/THEMES.md) para el sistema de variables CSS, clases utilitarias y la corrección aplicada en v1.2.1.
+
+Tras actualizar a v1.2.1, registrar el changelog en BD (si aún no existe):
+
+```bash
+cd backend
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.2.1.sql
+```
+
+Actualizar `APP_VERSION="1.2.1"` en `backend/.env`.
 
 ## Licencia
 

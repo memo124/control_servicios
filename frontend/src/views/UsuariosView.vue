@@ -46,23 +46,23 @@ onMounted(load);
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="lg:col-span-2 card !p-0 overflow-hidden">
-        <table class="w-full text-sm">
-          <thead class="bg-slate-800/50">
-            <tr class="text-left text-slate-400">
-              <th class="py-3 px-4">Nombre</th>
-              <th class="py-3 px-4">Email</th>
-              <th class="py-3 px-4">Rol</th>
-              <th class="py-3 px-4">Estado</th>
+      <div class="lg:col-span-2 table-wrap card card-flush">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Nombre</th>
+              <th>Email</th>
+              <th>Rol</th>
+              <th>Estado</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="u in users" :key="u.id" class="border-t border-slate-800/50">
-              <td class="py-3 px-4">{{ u.name }}</td>
-              <td class="py-3 px-4">{{ u.email }}</td>
-              <td class="py-3 px-4">{{ u.roles.map(r => r.role.nombre).join(', ') }}</td>
-              <td class="py-3 px-4">
-                <span :class="u.status === 'active' ? 'text-emerald-400' : 'text-red-400'">{{ u.status }}</span>
+            <tr v-for="u in users" :key="u.id">
+              <td>{{ u.name }}</td>
+              <td>{{ u.email }}</td>
+              <td>{{ u.roles.map(r => r.role.nombre).join(', ') }}</td>
+              <td>
+                <span :class="u.status === 'active' ? 'text-success' : 'text-cost'">{{ u.status }}</span>
               </td>
             </tr>
           </tbody>
@@ -72,13 +72,13 @@ onMounted(load);
       <div class="space-y-3">
         <h2 class="font-semibold">Roles del sistema</h2>
         <div v-for="r in roles" :key="r.id" class="card">
-          <h3 class="font-medium text-indigo-300">{{ r.nombre }}</h3>
-          <p class="text-xs text-slate-500 mt-1">{{ r.permissions.map(p => p.permission.slug).join(', ') }}</p>
+          <h3 class="font-medium text-brand">{{ r.nombre }}</h3>
+          <p class="text-xs text-themed-muted mt-1">{{ r.permissions.map(p => p.permission.slug).join(', ') }}</p>
         </div>
       </div>
     </div>
 
-    <div v-if="showForm" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" @click.self="showForm = false">
+    <div v-if="showForm" class="fixed inset-0 modal-overlay z-50 flex items-center justify-center p-4" @click.self="showForm = false">
       <div class="card w-full max-w-md">
         <h2 class="text-lg font-semibold mb-4">Nuevo usuario</h2>
         <form class="space-y-3" @submit.prevent="create">

@@ -76,38 +76,38 @@ onMounted(load);
       <button v-if="auth.hasPermission('clientes.gestionar')" class="btn-primary" @click="openCreate">+ Nuevo</button>
     </div>
 
-    <div v-if="loading" class="text-slate-400">Cargando...</div>
+    <div v-if="loading" class="text-themed-muted">Cargando...</div>
 
-    <div v-else class="hidden md:block overflow-x-auto card !p-0">
-      <table class="w-full text-sm">
-        <thead class="bg-slate-800/50">
-          <tr class="text-left text-slate-400">
-            <th class="py-3 px-4">Nombre</th>
-            <th class="py-3 px-4">Email</th>
-            <th class="py-3 px-4">Notificaciones</th>
-            <th class="py-3 px-4">Gracia</th>
-            <th class="py-3 px-4">Días gracia</th>
-            <th class="py-3 px-4"></th>
+    <div v-else class="hidden md:block table-wrap card card-flush">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Notificaciones</th>
+            <th>Gracia</th>
+            <th>Días gracia</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="c in items" :key="c.id" class="border-t border-slate-800/50">
-            <td class="py-3 px-4 font-medium">{{ c.nombre }}</td>
-            <td class="py-3 px-4">{{ c.email ?? '—' }}</td>
-            <td class="py-3 px-4">
+          <tr v-for="c in items" :key="c.id">
+            <td class="font-medium">{{ c.nombre }}</td>
+            <td>{{ c.email ?? '—' }}</td>
+            <td>
               <button
                 v-if="auth.hasPermission('clientes.gestionar')"
-                :class="['w-10 h-5 rounded-full transition-colors relative', c.deseaNotificacionesCorreo ? 'bg-indigo-600' : 'bg-slate-600']"
+                :class="['w-10 h-5 rounded-full transition-colors relative', c.deseaNotificacionesCorreo ? 'bg-indigo-600' : 'toggle-track-off']"
                 @click="toggleNotif(c)"
               >
                 <span :class="['absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all', c.deseaNotificacionesCorreo ? 'left-5' : 'left-0.5']" />
               </button>
               <span v-else>{{ c.deseaNotificacionesCorreo ? 'Sí' : 'No' }}</span>
             </td>
-            <td class="py-3 px-4">{{ c.aplicaDiasGracia ? 'Sí' : 'No' }}</td>
-            <td class="py-3 px-4">{{ c.diasGraciaDefault }}</td>
-            <td class="py-3 px-4">
-              <button v-if="auth.hasPermission('clientes.gestionar')" class="text-indigo-400 text-sm" @click="openEdit(c)">Editar</button>
+            <td>{{ c.aplicaDiasGracia ? 'Sí' : 'No' }}</td>
+            <td>{{ c.diasGraciaDefault }}</td>
+            <td>
+              <button v-if="auth.hasPermission('clientes.gestionar')" class="text-link text-sm" @click="openEdit(c)">Editar</button>
             </td>
           </tr>
         </tbody>
@@ -119,9 +119,9 @@ onMounted(load);
         <div class="flex justify-between">
           <div>
             <h3 class="font-semibold">{{ c.nombre }}</h3>
-            <p class="text-sm text-slate-400">{{ c.email ?? 'Sin email' }}</p>
+            <p class="text-sm text-themed-muted">{{ c.email ?? 'Sin email' }}</p>
           </div>
-          <button v-if="auth.hasPermission('clientes.gestionar')" class="text-indigo-400 text-sm" @click="openEdit(c)">Editar</button>
+          <button v-if="auth.hasPermission('clientes.gestionar')" class="text-link text-sm" @click="openEdit(c)">Editar</button>
         </div>
         <div class="flex gap-4 mt-2 text-sm">
           <span>Correos: {{ c.deseaNotificacionesCorreo ? 'On' : 'Off' }}</span>
@@ -130,7 +130,7 @@ onMounted(load);
       </div>
     </div>
 
-    <div v-if="showForm" class="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4" @click.self="showForm = false">
+    <div v-if="showForm" class="fixed inset-0 modal-overlay z-50 flex items-end sm:items-center justify-center p-4" @click.self="showForm = false">
       <div class="card w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <h2 class="text-lg font-semibold mb-4">{{ editing ? 'Editar' : 'Nuevo' }} cliente</h2>
         <form class="space-y-4" @submit.prevent="save">

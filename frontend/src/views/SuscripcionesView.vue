@@ -190,7 +190,7 @@ onMounted(load);
     <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-6">
       <div>
         <h1 class="text-2xl font-bold">Suscripciones</h1>
-        <p class="text-sm text-slate-400 mt-1">
+        <p class="text-sm text-themed-muted mt-1">
           Asigna un cliente a un cupo/perfil dentro de una cuenta de plataforma.
         </p>
       </div>
@@ -214,40 +214,40 @@ onMounted(load);
       </div>
     </div>
 
-    <div v-if="loading" class="text-slate-400">Cargando...</div>
+    <div v-if="loading" class="text-themed-muted">Cargando...</div>
 
-    <div v-else class="hidden lg:block overflow-x-auto card !p-0">
-      <table class="w-full text-sm">
-        <thead class="bg-slate-800/50">
-          <tr class="text-left text-slate-400">
-            <th class="py-3 px-4 sticky left-0 bg-slate-800/90">Cliente</th>
-            <th class="py-3 px-4">Plataforma</th>
-            <th class="py-3 px-4">Cuenta</th>
-            <th class="py-3 px-4">Dueño</th>
-            <th class="py-3 px-4">Perfil</th>
-            <th class="py-3 px-4">Precio cobro</th>
-            <th class="py-3 px-4">Corte</th>
-            <th class="py-3 px-4">Estado</th>
-            <th v-if="auth.hasPermission('suscripciones.editar')" class="py-3 px-4">Acciones</th>
+    <div v-else class="hidden lg:block table-wrap card card-flush">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="sticky-col">Cliente</th>
+            <th>Plataforma</th>
+            <th>Cuenta</th>
+            <th>Dueño</th>
+            <th>Perfil</th>
+            <th>Precio cobro</th>
+            <th>Corte</th>
+            <th>Estado</th>
+            <th v-if="auth.hasPermission('suscripciones.editar')">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="s in filtered" :key="s.suscripcion_id" class="border-t border-slate-800/50 hover:bg-slate-800/30">
-            <td class="py-3 px-4 sticky left-0 bg-slate-900/95 font-medium">{{ s.cliente_nombre }}</td>
-            <td class="py-3 px-4">{{ s.plataforma }}</td>
-            <td class="py-3 px-4 text-slate-400">{{ s.cuenta_identificador }}</td>
-            <td class="py-3 px-4">{{ s.dueno_cuenta }}</td>
-            <td class="py-3 px-4">{{ s.perfil_nombre }}</td>
-            <td class="py-3 px-4 text-emerald-400 font-medium">${{ parseFloat(s.precio_cobro).toFixed(2) }}</td>
-            <td class="py-3 px-4">{{ s.fecha_corte?.split('T')[0] }}</td>
-            <td class="py-3 px-4">
+          <tr v-for="s in filtered" :key="s.suscripcion_id">
+            <td class="sticky-col">{{ s.cliente_nombre }}</td>
+            <td>{{ s.plataforma }}</td>
+            <td class="text-themed-muted">{{ s.cuenta_identificador }}</td>
+            <td>{{ s.dueno_cuenta }}</td>
+            <td>{{ s.perfil_nombre }}</td>
+            <td class="text-money">${{ parseFloat(s.precio_cobro).toFixed(2) }}</td>
+            <td>{{ s.fecha_corte?.split('T')[0] }}</td>
+            <td>
               <EstadoBadge :label="s.estado_codigo" :codigo="s.estado_codigo" :nombre="s.estado_nombre" :color-hex="s.color_hex" />
             </td>
-            <td v-if="auth.hasPermission('suscripciones.editar')" class="py-3 px-4 whitespace-nowrap">
-              <button class="text-indigo-400 hover:text-indigo-300 text-sm font-medium mr-3" @click="openEdit(s)">Editar</button>
+            <td v-if="auth.hasPermission('suscripciones.editar')" class="whitespace-nowrap">
+              <button class="text-link text-sm font-medium mr-3" @click="openEdit(s)">Editar</button>
               <button
                 v-if="auth.hasPermission('suscripciones.eliminar')"
-                class="text-red-400 hover:text-red-300 text-sm"
+                class="text-danger text-sm"
                 @click="remove(s)"
               >
                 Eliminar
@@ -263,32 +263,32 @@ onMounted(load);
         <div class="flex justify-between items-start mb-2">
           <div>
             <h3 class="font-semibold">{{ s.cliente_nombre }}</h3>
-            <p class="text-sm text-slate-400">{{ s.plataforma }} · {{ s.cuenta_identificador }}</p>
+            <p class="text-sm text-themed-muted">{{ s.plataforma }} · {{ s.cuenta_identificador }}</p>
           </div>
           <EstadoBadge :label="s.estado_codigo" :codigo="s.estado_codigo" :nombre="s.estado_nombre" :color-hex="s.color_hex" />
         </div>
         <div class="grid grid-cols-2 gap-2 text-sm">
-          <div><span class="text-slate-500">Dueño:</span> {{ s.dueno_cuenta }}</div>
-          <div><span class="text-slate-500">Cobro:</span> <span class="text-emerald-400">${{ parseFloat(s.precio_cobro).toFixed(2) }}</span></div>
-          <div class="col-span-2"><span class="text-slate-500">Corte:</span> {{ s.fecha_corte?.split('T')[0] }}</div>
+          <div><span class="text-subtle">Dueño:</span> {{ s.dueno_cuenta }}</div>
+          <div><span class="text-subtle">Cobro:</span> <span class="text-money">${{ parseFloat(s.precio_cobro).toFixed(2) }}</span></div>
+          <div class="col-span-2"><span class="text-subtle">Corte:</span> {{ s.fecha_corte?.split('T')[0] }}</div>
         </div>
         <div v-if="auth.hasPermission('suscripciones.editar')" class="flex gap-3 mt-3">
-          <button class="text-indigo-400 text-sm font-medium" @click="openEdit(s)">Editar</button>
-          <button v-if="auth.hasPermission('suscripciones.eliminar')" class="text-red-400 text-sm" @click="remove(s)">Eliminar</button>
+          <button class="text-link text-sm font-medium" @click="openEdit(s)">Editar</button>
+          <button v-if="auth.hasPermission('suscripciones.eliminar')" class="text-danger text-sm" @click="remove(s)">Eliminar</button>
         </div>
       </div>
     </div>
 
-    <p v-if="!loading && filtered.length === 0" class="text-slate-500 mt-4">No hay suscripciones.</p>
+    <p v-if="!loading && filtered.length === 0" class="text-themed-muted mt-4">No hay suscripciones.</p>
 
     <div
       v-if="showForm"
-      class="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4"
+      class="fixed inset-0 modal-overlay z-50 flex items-end sm:items-center justify-center p-4"
       @click.self="showForm = false"
     >
       <div class="card w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <h2 class="text-lg font-semibold mb-1">{{ editing ? 'Editar suscripción' : 'Nueva suscripción' }}</h2>
-        <p class="text-xs text-slate-500 mb-5">
+        <p class="text-xs text-themed-muted mb-5">
           Vincula un cliente a un cupo de una cuenta. El precio de cobro es lo que el cliente te paga a ti.
         </p>
 

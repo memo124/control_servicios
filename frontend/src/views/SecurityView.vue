@@ -81,7 +81,7 @@ onMounted(loadStatus);
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Telegram -->
       <div class="card space-y-4">
-        <h2 class="font-semibold text-indigo-400">Telegram</h2>
+        <h2 class="font-semibold text-brand">Telegram</h2>
         <p class="text-sm text-themed-muted">
           Crea un bot con @BotFather, obtén tu Chat ID y configura
           <code class="text-xs">TELEGRAM_BOT_TOKEN</code> en el servidor.
@@ -92,12 +92,12 @@ onMounted(loadStatus);
         <button class="btn-primary w-full" :disabled="loading || !telegramChatId" @click="setupTelegram">
           Activar Telegram 2FA
         </button>
-        <p v-if="status.telegramEnabled" class="text-sm text-emerald-400">✓ Telegram activo</p>
+        <p v-if="status.telegramEnabled" class="text-sm text-success">✓ Telegram activo</p>
       </div>
 
       <!-- TOTP / QR -->
       <div class="card space-y-4">
-        <h2 class="font-semibold text-indigo-400">App autenticadora (QR)</h2>
+        <h2 class="font-semibold text-brand">App autenticadora (QR)</h2>
         <p class="text-sm text-themed-muted">
           Escanea el QR con Google Authenticator, Authy o similar.
         </p>
@@ -114,7 +114,7 @@ onMounted(loadStatus);
             Confirmar TOTP
           </button>
         </template>
-        <p v-if="status.totpEnabled" class="text-sm text-emerald-400">✓ TOTP activo</p>
+        <p v-if="status.totpEnabled" class="text-sm text-success">✓ TOTP activo</p>
       </div>
     </div>
 

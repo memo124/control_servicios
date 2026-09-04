@@ -78,16 +78,16 @@ onMounted(load);
         </select>
 
         <div>
-          <label class="text-sm text-slate-400">Asunto</label>
+          <label class="text-sm text-themed-muted">Asunto</label>
           <input v-model="asunto" class="input mt-1" />
         </div>
 
         <div>
-          <label class="text-sm text-slate-400">Cuerpo HTML</label>
+          <label class="text-sm text-themed-muted">Cuerpo HTML</label>
           <textarea v-model="cuerpoHtml" class="input mt-1 font-mono text-xs h-64" />
         </div>
 
-        <div class="text-xs text-slate-500">
+        <div class="text-xs text-themed-muted">
           Variables: {{ selected?.variablesDisponibles?.join(', ') }}
         </div>
 
@@ -96,8 +96,8 @@ onMounted(load);
 
       <div class="card">
         <h2 class="font-semibold mb-2">Vista previa</h2>
-        <p class="text-sm text-slate-400 mb-4">Asunto: {{ previewAsunto }}</p>
-        <div class="bg-white rounded-lg overflow-hidden border border-slate-700">
+        <p class="text-sm text-themed-muted mb-4">Asunto: {{ previewAsunto }}</p>
+        <div class="rounded-lg overflow-hidden border border-themed">
           <iframe :srcdoc="previewHtml" class="w-full h-[500px] bg-white" title="Preview" />
         </div>
       </div>

@@ -92,7 +92,7 @@ onMounted(load);
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
       <div>
         <h1 class="text-2xl font-bold">Cuentas y Dueños</h1>
-        <p class="text-sm text-slate-400 mt-1">
+        <p class="text-sm text-themed-muted mt-1">
           Cada cuenta representa lo que pagas al titular (dueño) por una suscripción familiar o completa.
         </p>
       </div>
@@ -101,33 +101,31 @@ onMounted(load);
       </button>
     </div>
 
-    <div v-if="loading" class="text-slate-400">Cargando...</div>
+    <div v-if="loading" class="text-themed-muted">Cargando...</div>
 
-    <div v-else class="hidden md:block overflow-x-auto card !p-0">
-      <table class="w-full text-sm">
-        <thead class="bg-slate-800/50">
-          <tr class="text-left text-slate-400">
-            <th class="py-3 px-4 sticky left-0 bg-slate-800/90">Plataforma</th>
-            <th class="py-3 px-4">Identificador</th>
-            <th class="py-3 px-4">Dueño (a quien pagas)</th>
-            <th class="py-3 px-4">Costo mensual</th>
-            <th class="py-3 px-4">Cupos</th>
-            <th class="py-3 px-4">Ocupados</th>
-            <th v-if="auth.hasPermission('cuentas.gestionar')" class="py-3 px-4">Acciones</th>
+    <div v-else class="hidden md:block table-wrap card card-flush">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="sticky-col">Plataforma</th>
+            <th>Identificador</th>
+            <th>Dueño (a quien pagas)</th>
+            <th>Costo mensual</th>
+            <th>Cupos</th>
+            <th>Ocupados</th>
+            <th v-if="auth.hasPermission('cuentas.gestionar')">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="c in items" :key="c.id" class="border-t border-slate-800/50 hover:bg-slate-800/20">
-            <td class="py-3 px-4 sticky left-0 bg-slate-900/95">{{ c.plataforma.nombre }}</td>
-            <td class="py-3 px-4">{{ c.identificador }}</td>
-            <td class="py-3 px-4 font-medium text-indigo-300">{{ c.duenoNombre }}</td>
-            <td class="py-3 px-4 text-red-400 font-medium">${{ parseFloat(c.costoMensual).toFixed(2) }}</td>
-            <td class="py-3 px-4">{{ c.cuposTotales }}</td>
-            <td class="py-3 px-4">{{ c.suscripciones?.length ?? 0 }}</td>
-            <td v-if="auth.hasPermission('cuentas.gestionar')" class="py-3 px-4">
-              <button class="text-indigo-400 hover:text-indigo-300 text-sm font-medium" @click="openEdit(c)">
-                Editar
-              </button>
+          <tr v-for="c in items" :key="c.id">
+            <td class="sticky-col">{{ c.plataforma.nombre }}</td>
+            <td>{{ c.identificador }}</td>
+            <td class="text-brand">{{ c.duenoNombre }}</td>
+            <td class="text-cost">${{ parseFloat(c.costoMensual).toFixed(2) }}</td>
+            <td>{{ c.cuposTotales }}</td>
+            <td>{{ c.suscripciones?.length ?? 0 }}</td>
+            <td v-if="auth.hasPermission('cuentas.gestionar')">
+              <button class="text-link text-sm font-medium" @click="openEdit(c)">Editar</button>
             </td>
           </tr>
         </tbody>
@@ -139,17 +137,17 @@ onMounted(load);
         <div class="flex justify-between items-start">
           <div>
             <h3 class="font-semibold">{{ c.plataforma.nombre }}</h3>
-            <p class="text-sm text-slate-400">{{ c.identificador }}</p>
+            <p class="text-sm text-themed-muted">{{ c.identificador }}</p>
           </div>
-          <span class="text-red-400 font-bold">${{ parseFloat(c.costoMensual).toFixed(2) }}/mes</span>
+          <span class="text-cost">${{ parseFloat(c.costoMensual).toFixed(2) }}/mes</span>
         </div>
         <p class="text-sm mt-2">
-          Dueño: <span class="text-indigo-300">{{ c.duenoNombre }}</span>
+          Dueño: <span class="text-brand">{{ c.duenoNombre }}</span>
         </p>
-        <p class="text-xs text-slate-500 mt-1">{{ c.suscripciones?.length ?? 0 }}/{{ c.cuposTotales }} cupos ocupados</p>
+        <p class="text-xs text-themed-muted mt-1">{{ c.suscripciones?.length ?? 0 }}/{{ c.cuposTotales }} cupos ocupados</p>
         <button
           v-if="auth.hasPermission('cuentas.gestionar')"
-          class="mt-3 text-indigo-400 text-sm font-medium"
+          class="mt-3 text-link text-sm font-medium"
           @click="openEdit(c)"
         >
           Editar cuenta
@@ -159,12 +157,12 @@ onMounted(load);
 
     <div
       v-if="showForm"
-      class="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4"
+      class="fixed inset-0 modal-overlay z-50 flex items-end sm:items-center justify-center p-4"
       @click.self="showForm = false"
     >
       <div class="card w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <h2 class="text-lg font-semibold mb-1">{{ editing ? 'Editar cuenta' : 'Nueva cuenta' }}</h2>
-        <p class="text-xs text-slate-500 mb-5">
+        <p class="text-xs text-themed-muted mb-5">
           Registra cuánto pagas al dueño por mantener esta cuenta activa en la plataforma.
         </p>
 

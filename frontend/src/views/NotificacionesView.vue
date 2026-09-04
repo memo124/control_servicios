@@ -40,14 +40,14 @@ onMounted(load);
       </button>
     </div>
 
-    <p v-if="result" class="text-emerald-400 mb-4">{{ result.enqueued }} correos encolados</p>
+    <p v-if="result" class="text-success mb-4">{{ result.enqueued }} correos encolados</p>
 
     <h2 class="font-semibold mb-3">Pendientes de envío ({{ pendientes.length }})</h2>
     <div class="space-y-2 mb-8">
       <div v-for="(p, i) in pendientes" :key="i" class="card flex justify-between items-center text-sm">
         <div>
           <span class="font-medium">{{ (p as any).cliente_nombre }}</span>
-          <span class="text-slate-400 ml-2">{{ (p as any).plataforma }}</span>
+          <span class="text-themed-muted ml-2">{{ (p as any).plataforma }}</span>
         </div>
         <EstadoBadge
           :label="(p as any).estado_codigo"
@@ -56,26 +56,26 @@ onMounted(load);
           :color-hex="(p as any).color_hex"
         />
       </div>
-      <p v-if="pendientes.length === 0" class="text-slate-500">No hay notificaciones pendientes.</p>
+      <p v-if="pendientes.length === 0" class="text-themed-muted">No hay notificaciones pendientes.</p>
     </div>
 
     <h2 class="font-semibold mb-3">Historial reciente</h2>
-    <div class="card !p-0 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead class="bg-slate-800/50">
-          <tr class="text-left text-slate-400">
-            <th class="py-3 px-4">Email</th>
-            <th class="py-3 px-4">Estado</th>
-            <th class="py-3 px-4">Fecha</th>
+    <div class="table-wrap card card-flush">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Fecha</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="h in historial" :key="(h as any).id" class="border-t border-slate-800/50">
-            <td class="py-3 px-4">{{ (h as any).email }}</td>
-            <td class="py-3 px-4" :class="(h as any).estadoEnvio === 'enviado' ? 'text-emerald-400' : 'text-red-400'">
+          <tr v-for="h in historial" :key="(h as any).id">
+            <td>{{ (h as any).email }}</td>
+            <td :class="(h as any).estadoEnvio === 'enviado' ? 'text-success' : 'text-cost'">
               {{ (h as any).estadoEnvio }}
             </td>
-            <td class="py-3 px-4 text-slate-400">{{ new Date((h as any).createdAt).toLocaleString() }}</td>
+            <td class="text-themed-muted">{{ new Date((h as any).createdAt).toLocaleString() }}</td>
           </tr>
         </tbody>
       </table>

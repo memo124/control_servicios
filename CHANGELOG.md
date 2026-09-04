@@ -4,6 +4,18 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.2.1] - 2026-09-04
+
+### Fixed
+- Tema claro ilegible: texto blanco/gris claro sobre fondos blancos en tablas y formularios
+- Tablas de Suscripciones, Cuentas, Clientes, Dashboard, Usuarios y Notificaciones sin contraste en light mode
+- Labels de `FormField`, KPIs y modales con colores fijos de modo oscuro
+
+### Changed
+- Sistema de temas unificado con variables CSS en `frontend/src/assets/main.css`
+- Clases reutilizables: `.data-table`, `.text-themed-muted`, `.text-link`, `.text-cost`, `.modal-overlay`, etc.
+- Documentación del sistema de temas en [docs/THEMES.md](docs/THEMES.md)
+
 ## [1.0.0] - 2026-09-04
 
 ### Added
@@ -48,6 +60,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.2.1]: https://github.com/memo124/control_servicios/releases/tag/v1.2.1
 [1.2.0]: https://github.com/memo124/control_servicios/releases/tag/v1.2.0
 [1.1.0]: https://github.com/memo124/control_servicios/releases/tag/v1.1.0
 [1.0.1]: https://github.com/memo124/control_servicios/releases/tag/v1.0.1
