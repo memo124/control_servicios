@@ -81,6 +81,16 @@ control_servicios/
 
 Ver `.env.example` para la lista completa.
 
+### Rate limiting
+
+| Variable | Default | Descripción |
+|----------|---------|-------------|
+| `THROTTLE_TTL_MS` | 60000 | Ventana global en ms |
+| `THROTTLE_LIMIT` | 100 | Máx. requests por IP en la ventana |
+| `THROTTLE_AUTH_LIMIT` | 5 | Máx. intentos de login por IP/min |
+
+Respuesta HTTP **429** con mensaje en español al superar el límite.
+
 ## Redis con Docker
 
 ```bash

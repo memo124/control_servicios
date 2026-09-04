@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BullModule } from '@nestjs/bullmq';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -14,10 +16,29 @@ import { PlantillasModule } from './plantillas/plantillas.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { SystemModule } from './system/system.module';
 import { EstadosModule } from './estados/estados.module';
+import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        throttlers: [
+          {
+            name: 'default',
+            ttl: config.get<number>('THROTTLE_TTL_MS', 60_000),
+            limit: config.get<number>('THROTTLE_LIMIT', 100),
+          },
+          {
+            name: 'auth',
+            ttl: config.get<number>('THROTTLE_AUTH_TTL_MS', 60_000),
+            limit: config.get<number>('THROTTLE_AUTH_LIMIT', 5),
+          },
+        ],
+      }),
+    }),
     ScheduleModule.forRoot(),
     BullModule.forRoot({
       connection: {
@@ -37,6 +58,12 @@ import { EstadosModule } from './estados/estados.module';
     NotificacionesModule,
     SystemModule,
     EstadosModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: AppThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}
