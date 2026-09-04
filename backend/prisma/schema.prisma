@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Plataforma {
+  id          Int                @id @default(autoincrement())
+  nombre      String             @unique @db.VarChar(100)
+  descripcion String?
+  activo      Boolean            @default(true)
+  createdAt   DateTime           @default(now()) @map("created_at")
+  cuentas     CuentaPlataforma[]
+
+  @@map("plataformas")
+}
+
+model CuentaPlataforma {
+  id              Int                   @id @default(autoincrement())
+  plataformaId    Int                   @map("plataforma_id")
+  identificador   String                @db.VarChar(100)
+  duenoNombre     String                @map("dueno_nombre") @db.VarChar(120)
+  costoMensual    Decimal               @map("costo_mensual") @db.Decimal(10, 2)
+  cuposTotales    Int                   @default(1) @map("cupos_totales")
+  fechaCorteCuenta DateTime?            @map("fecha_corte_cuenta") @db.Date
+  activo          Boolean               @default(true)
+  createdAt       DateTime              @default(now()) @map("created_at")
+  plataforma      Plataforma            @relation(fields: [plataformaId], references: [id], onDelete: Cascade)
+  suscripciones   SuscripcionCliente[]
+
+  @@unique([plataformaId, identificador], map: "uq_plataforma_cuenta")
+  @@index([plataformaId], map: "idx_cuentas_plataforma_id")
+  @@map("cuentas_plataforma")
+}
+
+model Cliente {
+  id                        Int                   @id @default(autoincrement())
+  nombre                    String                @db.VarChar(150)
+  email                     String?               @db.VarChar(255)
+  telefono                  String?               @db.VarChar(50)
+  deseaNotificacionesCorreo Boolean               @default(true) @map("desea_notificaciones_correo")
+  aplicaDiasGracia          Boolean               @default(false) @map("aplica_dias_gracia")
+  diasGraciaDefault         Int                   @default(0) @map("dias_gracia_default")
+  activo                    Boolean               @default(true)
+  createdAt                 DateTime              @default(now()) @map("created_at")
+  suscripciones             SuscripcionCliente[]
+
+  @@map("clientes")
+}
+
+model Estado {
+  id             Int            @id @default(autoincrement())
+  codigo         String         @unique @db.VarChar(50)
+  nombre         String         @db.VarChar(100)
+  descripcion    String?
+  permiteAcceso  Boolean        @default(true) @map("permite_acceso")
+  colorHex       String         @default("#28a745") @map("color_hex") @db.VarChar(7)
+  createdAt      DateTime       @default(now()) @map("created_at")
+  reglas         EstadoRegla[]
+
+  @@map("estados")
+}
+
+model EstadoRegla {
+  id                      Int     @id @default(autoincrement())
+  estadoId                Int     @map("estado_id")
+  requiereGraciaActiva    Boolean @default(false) @map("requiere_gracia_activa")
+  diasVencidoMin          Int     @map("dias_vencido_min")
+  diasVencidoMax          Int     @map("dias_vencido_max")
+  diasGraciaRestantesMin  Int     @map("dias_gracia_restantes_min")
+  diasGraciaRestantesMax  Int     @map("dias_gracia_restantes_max")
+  prioridad               Int
+  activo                  Boolean @default(true)
+  estado                  Estado  @relation(fields: [estadoId], references: [id], onDelete: Cascade)
+
+  @@index([prioridad, activo], map: "idx_reglas_eval")
+  @@map("estados_reglas")
+}
+
+model SuscripcionCliente {
+  id           Int              @id @default(autoincrement())
+  cuentaId     Int              @map("cuenta_id")
+  clienteId    Int              @map("cliente_id")
+  perfilNombre String?          @map("perfil_nombre") @db.VarChar(100)
+  precioCobro  Decimal          @map("precio_cobro") @db.Decimal(10, 2)
+  fechaCorte   DateTime         @map("fecha_corte") @db.Date
+  aplicaGracia Boolean          @default(false) @map("aplica_gracia")
+  diasGracia   Int              @default(0) @map("dias_gracia")
+  activo       Boolean          @default(true)
+  createdAt    DateTime         @default(now()) @map("created_at")
+  cuenta       CuentaPlataforma @relation(fields: [cuentaId], references: [id], onDelete: Cascade)
+  cliente      Cliente          @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  notificaciones HistorialNotificacion[]
+
+  @@index([fechaCorte, aplicaGracia, diasGracia], map: "idx_suscripciones_fechas")
+  @@map("suscripciones_clientes")
+}
+
+model PlantillaCorreo {
+  id                   Int      @id @default(autoincrement())
+  codigo               String   @unique @db.VarChar(50)
+  asunto               String   @db.VarChar(200)
+  cuerpoHtml           String   @map("cuerpo_html")
+  variablesDisponibles Json     @map("variables_disponibles")
+  activo               Boolean  @default(true)
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@map("plantillas_correo")
+}
+
+model HistorialNotificacion {
+  id              Int                @id @default(autoincrement())
+  suscripcionId   Int                @map("suscripcion_id")
+  email           String             @db.VarChar(255)
+  estadoEnvio     String             @map("estado_envio") @db.VarChar(50)
+  respuestaResend Json?              @map("respuesta_resend")
+  createdAt       DateTime           @default(now()) @map("created_at")
+  suscripcion     SuscripcionCliente @relation(fields: [suscripcionId], references: [id], onDelete: Cascade)
+
+  @@index([suscripcionId])
+  @@map("historial_notificaciones")
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  name         String     @db.VarChar(150)
+  email        String     @unique @db.VarChar(255)
+  passwordHash String     @map("password_hash")
+  status       String     @default("active") @db.VarChar(20)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  roles        RoleUser[]
+
+  @@map("users")
+}
+
+model Role {
+  id          Int              @id @default(autoincrement())
+  nombre      String           @db.VarChar(100)
+  slug        String           @unique @db.VarChar(50)
+  users       RoleUser[]
+  permissions PermissionRole[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id     Int              @id @default(autoincrement())
+  nombre String           @db.VarChar(100)
+  slug   String           @unique @db.VarChar(100)
+  roles  PermissionRole[]
+
+  @@map("permissions")
+}
+
+model RoleUser {
+  userId Int  @map("user_id")
+  roleId Int  @map("role_id")
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("role_user")
+}
+
+model PermissionRole {
+  roleId       Int        @map("role_id")
+  permissionId Int        @map("permission_id")
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("permission_role")
+}
+
+model SystemVersion {
+  id          Int      @id @default(autoincrement())
+  version     String   @db.VarChar(20)
+  titulo      String   @db.VarChar(200)
+  descripcion String?
+  tipo        String   @default("minor") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("system_versions")
+}

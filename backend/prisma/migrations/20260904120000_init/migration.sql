@@ -1,0 +1,2 @@
+-- Initial migration generated from Prisma schema
+-- Run: npx prisma db push && npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/views.sql
