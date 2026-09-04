@@ -1,8 +1,12 @@
 -- Views for dynamic state evaluation (no CASE WHEN in application code)
-CREATE OR REPLACE VIEW v_suscripciones_detalle AS
+DROP VIEW IF EXISTS v_suscripciones_detalle;
+DROP VIEW IF EXISTS v_balance_financiero;
+
+CREATE VIEW v_suscripciones_detalle AS
 SELECT 
     s.id AS suscripcion_id,
     c.id AS cliente_id,
+    cp.id AS cuenta_id,
     c.nombre AS cliente_nombre,
     c.email AS cliente_email,
     c.desea_notificaciones_correo,
@@ -44,7 +48,7 @@ CROSS JOIN LATERAL (
     LIMIT 1
 ) est;
 
-CREATE OR REPLACE VIEW v_balance_financiero AS
+CREATE VIEW v_balance_financiero AS
 WITH resumen_cuenta AS (
     SELECT 
         cp.id AS cuenta_id,

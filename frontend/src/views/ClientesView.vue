@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue';
 import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
+import FormField from '@/components/FormField.vue';
 
 interface Cliente {
   id: number;
@@ -130,21 +131,31 @@ onMounted(load);
     </div>
 
     <div v-if="showForm" class="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center p-4" @click.self="showForm = false">
-      <div class="card w-full max-w-md">
+      <div class="card w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <h2 class="text-lg font-semibold mb-4">{{ editing ? 'Editar' : 'Nuevo' }} cliente</h2>
-        <form class="space-y-3" @submit.prevent="save">
-          <input v-model="form.nombre" class="input" placeholder="Nombre" required />
-          <input v-model="form.email" class="input" type="email" placeholder="Email" />
-          <input v-model="form.telefono" class="input" placeholder="Teléfono" />
-          <label class="flex items-center gap-2 text-sm">
-            <input v-model="form.deseaNotificacionesCorreo" type="checkbox" class="rounded" />
-            Recibir notificaciones por correo
-          </label>
-          <label class="flex items-center gap-2 text-sm">
-            <input v-model="form.aplicaDiasGracia" type="checkbox" class="rounded" />
-            Aplica días de gracia
-          </label>
-          <input v-model.number="form.diasGraciaDefault" class="input" type="number" min="0" placeholder="Días gracia default" />
+        <form class="space-y-4" @submit.prevent="save">
+          <FormField label="Nombre del cliente" hint="Nombre completo o apodo con el que identificas al cliente." required>
+            <input v-model="form.nombre" class="input" placeholder="Ej: Melissa" required />
+          </FormField>
+          <FormField label="Correo electrónico" hint="Se usa para enviar avisos de cobro. Debe ser válido si activas notificaciones.">
+            <input v-model="form.email" class="input" type="email" placeholder="cliente@email.com" />
+          </FormField>
+          <FormField label="Teléfono" hint="Opcional. Para contacto directo.">
+            <input v-model="form.telefono" class="input" placeholder="+503 0000-0000" />
+          </FormField>
+          <FormField label="Notificaciones por correo" hint="Si está activo, recibirá avisos cuando su suscripción venza o entre en gracia.">
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input v-model="form.deseaNotificacionesCorreo" type="checkbox" class="rounded" />
+              Enviar recordatorios de pago por email
+            </label>
+          </FormField>
+          <FormField label="Días de gracia" hint="Margen extra después del corte antes de considerar la suscripción vencida.">
+            <label class="flex items-center gap-2 text-sm cursor-pointer mb-2">
+              <input v-model="form.aplicaDiasGracia" type="checkbox" class="rounded" />
+              Este cliente puede usar días de gracia
+            </label>
+            <input v-model.number="form.diasGraciaDefault" class="input" type="number" min="0" placeholder="Ej: 3" />
+          </FormField>
           <div class="flex gap-2 pt-2">
             <button type="submit" class="btn-primary flex-1">Guardar</button>
             <button type="button" class="btn-secondary flex-1" @click="showForm = false">Cancelar</button>

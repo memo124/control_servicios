@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 export interface SuscripcionDetalle {
   suscripcion_id: number;
+  cuenta_id: number;
   cliente_id: number;
   cliente_nombre: string;
   cliente_email: string | null;
