@@ -189,7 +189,7 @@ onMounted(load);
 
           <FormField
             label="Identificador de la cuenta"
-            hint="Nombre interno para distinguirla. Ej: Familia #1, Cuenta 2, mineromemo429."
+            hint="Nombre interno para distinguirla. Ej: Familia #1, Cuenta 2, HBO 1."
             required
           >
             <input v-model="form.identificador" class="input" placeholder="Ej: Familia #1" required />

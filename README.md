@@ -1,4 +1,4 @@
-# Control Servicios v1.4.0
+# Control Servicios v1.4.1
 
 Plataforma full-stack para administración de suscripciones de streaming, control financiero de ganancias y envío de avisos de cobro por correo electrónico.
 
@@ -46,7 +46,7 @@ Tras `npm run db:seed` quedan configurados los siguientes usuarios:
 | Rol | Email | Contraseña | Alcance |
 |-----|-------|------------|---------|
 | **Administrador** (full admin) | `admin@controlservicios.local` | `Admin123!` | Todos los permisos: usuarios, plantillas, correos, finanzas, cuentas, clientes, suscripciones |
-| **Operador** — Guillermo Minero | `mineromemo429@gmail.com` | `Operador123!` | Familia #1 Spotify, HBO 1, Amazon, Disney+, Crunchyroll |
+| **Operador** — Guillermo | `guillermo@controlservicios.local` | `Operador123!` | Familia #1 Spotify, HBO 1, Amazon, Disney+, Crunchyroll |
 | **Operador** — Oscar | `oscar@controlservicios.local` | `Operador123!` | Cuentas de **Oscar** |
 | **Operador** — Enzo | `enzo@controlservicios.local` | `Operador123!` | Cuentas de **Enzo** |
 | **Operador** — Eric | `eric@controlservicios.local` | `Operador123!` | Cuentas de **Eric** |
@@ -66,7 +66,7 @@ Tras `npm run db:seed` quedan configurados los siguientes usuarios:
 
 Los operadores **no** pueden acceder a `/usuarios`, `/plantillas` ni disparar notificaciones masivas. El filtro por titular se aplica en el backend (`operadorDuenoScope`) — un operador no puede listar cuentas de otro dueño aunque manipule query params.
 
-> **Nota sobre datos de seed:** Los 20 cupos de Spotify, 4 de HBO/Amazon/Disney+/Crunchyroll y los 18 clientes nombrados provienen de la hoja de control real. Los cupos sin cliente usan el registro **Cupo disponible**. Melissa tiene `mineromemo429@gmail.com` para probar notificaciones Resend.
+> **Nota sobre datos de seed:** Los 20 cupos de Spotify, 4 de HBO/Amazon/Disney+/Crunchyroll y los 18 clientes nombrados provienen de la hoja de control real. Los cupos sin cliente usan el registro **Cupo disponible**.
 
 ## Registro de pagos (v1.3.0)
 
@@ -234,7 +234,7 @@ El script valida:
 3. Abrir formulario de cliente, llenar campos, recargar F5, pulsar **+ Nuevo** → borrador restaurado
 4. DevTools → Network → Offline → intentar guardar → banner + toast + borrador intacto
 5. Volver online → guardar de nuevo → éxito y borrador limpiado
-6. Login como `guillermo@...` → no aparece menú Usuarios ni Plantillas
+6. Login como `guillermo@controlservicios.local` → no aparece menú Usuarios ni Plantillas
 7. Login como `admin@...` → acceso total
 
 ## Estructura del proyecto
@@ -299,15 +299,17 @@ El historial de versiones se gestiona en la tabla `system_versions` y es visible
 
 Ver [docs/THEMES.md](docs/THEMES.md) para el sistema de variables CSS, clases utilitarias y la corrección aplicada en v1.2.1.
 
-Tras actualizar a **v1.4.0**:
+Tras actualizar a **v1.4.1** (o desde v1.4.0):
 
 ```bash
 cd backend
 npx prisma migrate deploy
 npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.4.0.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.4.1.sql
+npm run db:seed
 ```
 
-Actualizar `APP_VERSION="1.4.0"` en `backend/.env`.
+Actualizar `APP_VERSION="1.4.1"` en `backend/.env`.
 
 Para sincronizar datos de seed (cuentas, clientes, suscripciones):
 

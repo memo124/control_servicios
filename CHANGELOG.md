@@ -4,6 +4,15 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.4.1] - 2026-09-05
+
+### Fixed
+- Operador Guillermo usa `guillermo@controlservicios.local` en lugar de correo personal en seed, README y pruebas RBAC
+- Seed elimina usuario legacy con correo personal si existía en BD
+
+### Changed
+- Cliente Melissa en seed: `melissa@email.com` (sin correo personal en datos de ejemplo)
+
 ## [1.4.0] - 2026-09-05
 
 ### Added
@@ -82,6 +91,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.4.1]: https://github.com/memo124/control_servicios/releases/tag/v1.4.1
 [1.4.0]: https://github.com/memo124/control_servicios/releases/tag/v1.4.0
 [1.3.0]: https://github.com/memo124/control_servicios/releases/tag/v1.3.0
 [1.2.1]: https://github.com/memo124/control_servicios/releases/tag/v1.2.1

@@ -96,11 +96,18 @@ async function main() {
 
   const operadorPasswordHash = await bcrypt.hash('Operador123!', 10);
   const operadores = [
-    { name: 'Guillermo', email: 'mineromemo429@gmail.com' },
+    { name: 'Guillermo', email: 'guillermo@controlservicios.local' },
     { name: 'Oscar', email: 'oscar@controlservicios.local' },
     { name: 'Enzo', email: 'enzo@controlservicios.local' },
     { name: 'Eric', email: 'eric@controlservicios.local' },
   ];
+  // Operador legacy con correo personal (ya no se usa)
+  const legacyOperador = await prisma.user.findUnique({ where: { email: 'mineromemo429@gmail.com' } });
+  if (legacyOperador) {
+    await prisma.historialNotificacionDueno.deleteMany({ where: { userId: legacyOperador.id } });
+    await prisma.roleUser.deleteMany({ where: { userId: legacyOperador.id } });
+    await prisma.user.delete({ where: { id: legacyOperador.id } });
+  }
   for (const op of operadores) {
     const user = await prisma.user.upsert({
       where: { email: op.email },
@@ -173,7 +180,7 @@ async function main() {
   // ── Clientes ─────────────────────────────────────────────────────────
   // id 19 = cupo sin asignar (perfiles vacíos en la hoja)
   const clientes = [
-    { id: 1, nombre: 'Melissa', email: 'mineromemo429@gmail.com', deseaNotificacionesCorreo: true, aplicaDiasGracia: true, diasGraciaDefault: 3 },
+    { id: 1, nombre: 'Melissa', email: 'melissa@email.com', deseaNotificacionesCorreo: true, aplicaDiasGracia: true, diasGraciaDefault: 3 },
     { id: 2, nombre: 'Hermano de sofia', email: null, deseaNotificacionesCorreo: true, aplicaDiasGracia: true, diasGraciaDefault: 3 },
     { id: 3, nombre: 'Alejandro', email: null, deseaNotificacionesCorreo: true, aplicaDiasGracia: false, diasGraciaDefault: 0 },
     { id: 4, nombre: 'Roberto', email: null, deseaNotificacionesCorreo: true, aplicaDiasGracia: false, diasGraciaDefault: 0 },
@@ -338,6 +345,13 @@ async function main() {
 
   const changelogEntries = [
     {
+      version: '1.4.1',
+      titulo: 'Corrección email operador Guillermo',
+      descripcion:
+        'Operador Guillermo usa guillermo@controlservicios.local. Seed elimina usuario legacy con correo personal.',
+      tipo: 'patch',
+    },
+    {
       version: '1.4.0',
       titulo: 'Alertas Telegram para dueños de cuenta',
       descripcion:
@@ -370,11 +384,10 @@ async function main() {
   console.log('Seed completado.');
   console.log(`  Suscripciones: ${suscripciones.length} (Spotify: 20, HBO: 4, Amazon: 4, Disney+: 4, Crunchyroll: 4)`);
   console.log('  Admin:    admin@controlservicios.local / Admin123!');
-  console.log('  Operador: mineromemo429@gmail.com / Operador123! (Guillermo Minero)');
+  console.log('  Operador: guillermo@controlservicios.local / Operador123! (Guillermo)');
   console.log('  Operador: oscar@controlservicios.local / Operador123!');
   console.log('  Operador: enzo@controlservicios.local / Operador123!');
   console.log('  Operador: eric@controlservicios.local / Operador123!');
-  console.log('  Correo prueba notificaciones: Melissa → mineromemo429@gmail.com');
 }
 
 main()
