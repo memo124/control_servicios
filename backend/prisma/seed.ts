@@ -338,6 +338,13 @@ async function main() {
 
   const changelogEntries = [
     {
+      version: '1.4.0',
+      titulo: 'Alertas Telegram para dueños de cuenta',
+      descripcion:
+        'Telegram a operadores/dueños cuando clientes están en gracia o vencidos. Correo sigue yendo al cliente. Configuración en Seguridad.',
+      tipo: 'minor',
+    },
+    {
       version: '1.3.0',
       titulo: 'Registro de pagos en suscripciones',
       descripcion:

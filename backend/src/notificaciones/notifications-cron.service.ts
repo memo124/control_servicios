@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { NotificacionesService, EmailJobData } from './notificaciones.service';
+import { TelegramDuenoNotifierService } from './telegram-dueno-notifier.service';
 
 const QUEUE_TIMEOUT_MS = 5_000;
 
@@ -12,6 +13,7 @@ export class NotificationsCronService {
 
   constructor(
     private notificaciones: NotificacionesService,
+    private telegramDueno: TelegramDuenoNotifierService,
     @InjectQueue('email-notifications') private emailQueue: Queue<EmailJobData>,
   ) {}
 
@@ -19,10 +21,15 @@ export class NotificationsCronService {
   async handleDailyNotifications() {
     this.logger.log('Iniciando job diario de notificaciones');
     await this.enqueueNotifications();
+    await this.telegramDueno.enviarAlertasDuenos();
   }
 
   async runManually() {
     return this.enqueueNotifications();
+  }
+
+  async runTelegramDuenosManually() {
+    return this.telegramDueno.enviarAlertasDuenos();
   }
 
   private async enqueueNotifications() {

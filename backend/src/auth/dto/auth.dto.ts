@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, Length, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, MinLength } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -39,6 +39,16 @@ export class SetupTelegramDto {
   @IsString()
   @IsNotEmpty()
   chatId!: string;
+}
+
+export class SetupAlertasDuenoDto {
+  @IsString()
+  @IsNotEmpty()
+  chatId!: string;
+
+  @IsString()
+  @IsOptional()
+  telefono?: string;
 }
 
 export class ConfirmTotpDto {

@@ -1,4 +1,4 @@
-# Control Servicios v1.3.0
+# Control Servicios v1.4.0
 
 Plataforma full-stack para administración de suscripciones de streaming, control financiero de ganancias y envío de avisos de cobro por correo electrónico.
 
@@ -108,6 +108,31 @@ Respuesta:
 ```
 
 Requiere permiso `suscripciones.editar`.
+
+## Alertas Telegram a dueños (v1.4.0)
+
+Los **clientes** reciben **correo** (Resend). Los **dueños de cuenta** (Guillermo, Oscar, Enzo, Eric) reciben **Telegram** para saber a quién escribir por WhatsApp/teléfono.
+
+| Canal | Destinatario | Cuándo |
+|-------|--------------|--------|
+| Correo | Cliente (`cliente.email`) | Vence hoy, en gracia, vencida |
+| Telegram | Dueño (`User.name` = `dueno_nombre`) | Mismo criterio, resumen agrupado |
+
+### Configurar (cada dueño/operador)
+
+1. Crear bot con @BotFather → `TELEGRAM_BOT_TOKEN` en `backend/.env`
+2. Obtener Chat ID con @userinfobot
+3. **Seguridad → Alertas Telegram — Dueño de cuenta** → Chat ID + teléfono (referencia)
+4. El nombre del usuario debe coincidir con `dueno_nombre` en cuentas (ej. `Guillermo`)
+
+### Enviar manualmente
+
+**Notificaciones → Telegram a dueños** (o cron diario 6:00 AM con los correos).
+
+```http
+POST /api/notificaciones/telegram-duenos/ejecutar
+GET  /api/notificaciones/telegram-duenos/pendientes
+```
 
 ## Resiliencia en el frontend
 
@@ -250,7 +275,10 @@ control_servicios/
 | GET | /api/clientes | CRUD clientes |
 | GET | /api/cuentas | Cuentas y dueños |
 | GET | /api/plantillas | Plantillas de correo |
-| POST | /api/notificaciones/ejecutar | Disparo manual de notificaciones |
+| POST | /api/notificaciones/ejecutar | Correo manual a clientes |
+| POST | /api/notificaciones/telegram-duenos/ejecutar | Telegram manual a dueños |
+| GET | /api/notificaciones/telegram-duenos/pendientes | Dueños con alertas y clientes pendientes |
+| POST | /api/auth/alertas-dueno/setup | Configurar Telegram del dueño |
 | GET | /api/users | Gestión de usuarios (solo admin) |
 
 ## Variables de entorno
@@ -271,14 +299,15 @@ El historial de versiones se gestiona en la tabla `system_versions` y es visible
 
 Ver [docs/THEMES.md](docs/THEMES.md) para el sistema de variables CSS, clases utilitarias y la corrección aplicada en v1.2.1.
 
-Tras actualizar a v1.3.0, registrar el changelog en BD:
+Tras actualizar a **v1.4.0**:
 
 ```bash
 cd backend
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.3.0.sql
+npx prisma migrate deploy
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.4.0.sql
 ```
 
-Actualizar `APP_VERSION="1.3.0"` en `backend/.env`.
+Actualizar `APP_VERSION="1.4.0"` en `backend/.env`.
 
 Para sincronizar datos de seed (cuentas, clientes, suscripciones):
 

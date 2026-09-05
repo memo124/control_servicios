@@ -4,6 +4,17 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.4.0] - 2026-09-05
+
+### Added
+- Alertas **Telegram a dueños de cuenta** (operadores) cuando clientes están en gracia, vencen hoy o están vencidos
+- Configuración en **Seguridad → Alertas Telegram — Dueño de cuenta** (Chat ID + teléfono de referencia)
+- Endpoints `GET/POST /api/notificaciones/telegram-duenos/*` y cron diario junto al envío de correos
+- Tabla `historial_notificaciones_dueno` para auditoría
+
+### Changed
+- Vista Notificaciones separa correo (clientes) y Telegram (dueños)
+
 ## [1.3.0] - 2026-09-05
 
 ### Added
@@ -71,6 +82,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.4.0]: https://github.com/memo124/control_servicios/releases/tag/v1.4.0
 [1.3.0]: https://github.com/memo124/control_servicios/releases/tag/v1.3.0
 [1.2.1]: https://github.com/memo124/control_servicios/releases/tag/v1.2.1
 [1.2.0]: https://github.com/memo124/control_servicios/releases/tag/v1.2.0

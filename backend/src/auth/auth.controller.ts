@@ -9,11 +9,13 @@ import {
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { TwoFactorService } from './two-factor.service';
+import { AlertasDuenoService } from './alertas-dueno.service';
 import { QrLoginService } from './qr-login.service';
 import {
   LoginDto,
   Verify2FADto,
   SetupTelegramDto,
+  SetupAlertasDuenoDto,
   ConfirmTotpDto,
   QrAuthorizeDto,
   QrPollDto,
@@ -27,6 +29,7 @@ export class AuthController {
   constructor(
     private authService: AuthService,
     private twoFactor: TwoFactorService,
+    private alertasDueno: AlertasDuenoService,
     private qrLogin: QrLoginService,
   ) {}
 
@@ -83,6 +86,24 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   disable2FA(@CurrentUser() user: AuthUser) {
     return this.twoFactor.disable2FA(user.id);
+  }
+
+  @Get('alertas-dueno/status')
+  @UseGuards(JwtAuthGuard)
+  alertasDuenoStatus(@CurrentUser() user: AuthUser) {
+    return this.alertasDueno.getStatus(user.id);
+  }
+
+  @Post('alertas-dueno/setup')
+  @UseGuards(JwtAuthGuard)
+  setupAlertasDueno(@CurrentUser() user: AuthUser, @Body() dto: SetupAlertasDuenoDto) {
+    return this.alertasDueno.setup(user.id, dto.chatId, dto.telefono);
+  }
+
+  @Post('alertas-dueno/disable')
+  @UseGuards(JwtAuthGuard)
+  disableAlertasDueno(@CurrentUser() user: AuthUser) {
+    return this.alertasDueno.disable(user.id);
   }
 
   @Post('qr/session')

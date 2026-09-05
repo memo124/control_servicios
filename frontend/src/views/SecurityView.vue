@@ -8,13 +8,49 @@ import QrCanvas from '@/components/ui/QrCanvas.vue';
 const toast = useToast();
 const status = ref<Record<string, unknown>>({});
 const telegramChatId = ref('');
+const alertasChatId = ref('');
+const alertasTelefono = ref('');
+const alertasStatus = ref<Record<string, unknown>>({});
 const totpCode = ref('');
 const totpSetup = ref<{ secret: string; otpauthUrl: string } | null>(null);
 const loading = ref(false);
 
 async function loadStatus() {
-  const { data } = await api.get('/auth/2fa/status');
-  status.value = data;
+  const [s, a] = await Promise.all([
+    api.get('/auth/2fa/status'),
+    api.get('/auth/alertas-dueno/status'),
+  ]);
+  status.value = s.data;
+  alertasStatus.value = a.data;
+  if (a.data.alertasDuenoTelegramChatId) alertasChatId.value = String(a.data.alertasDuenoTelegramChatId);
+  if (a.data.telefono) alertasTelefono.value = String(a.data.telefono);
+}
+
+async function setupAlertasDueno() {
+  loading.value = true;
+  try {
+    await api.post('/auth/alertas-dueno/setup', {
+      chatId: alertasChatId.value,
+      telefono: alertasTelefono.value || undefined,
+    });
+    toast.success('Alertas activadas', 'Revisa Telegram para confirmar');
+    await loadStatus();
+  } catch {
+    toast.error('Error', 'No se pudieron activar las alertas');
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function disableAlertasDueno() {
+  loading.value = true;
+  try {
+    await api.post('/auth/alertas-dueno/disable');
+    toast.warning('Alertas desactivadas');
+    await loadStatus();
+  } finally {
+    loading.value = false;
+  }
 }
 
 async function setupTelegram() {
@@ -79,7 +115,44 @@ onMounted(loadStatus);
     </p>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Telegram -->
+      <!-- Alertas dueño Telegram -->
+      <div class="card space-y-4 lg:col-span-2 border-brand/30">
+        <h2 class="font-semibold text-brand">Alertas Telegram — Dueño de cuenta</h2>
+        <p class="text-sm text-themed-muted">
+          Recibe en <b>tu Telegram</b> (no el del cliente) un resumen de clientes en
+          <b>días de gracia</b> o <b>vencidos</b> para escribirles por WhatsApp/teléfono.
+          Los clientes siguen recibiendo <b>correo</b> por separado.
+        </p>
+        <p class="text-xs text-themed-muted">
+          Obtén tu Chat ID con @userinfobot en Telegram. El teléfono es solo referencia tuya en el sistema.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <FormField label="Chat ID de Telegram" hint="Ej: 123456789">
+            <input v-model="alertasChatId" class="input" placeholder="123456789" />
+          </FormField>
+          <FormField label="Teléfono (referencia)" hint="Opcional — no envía SMS, solo se guarda">
+            <input v-model="alertasTelefono" class="input" placeholder="+502 1234-5678" />
+          </FormField>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button class="btn-primary" :disabled="loading || !alertasChatId" @click="setupAlertasDueno">
+            Activar alertas de dueño
+          </button>
+          <button
+            v-if="alertasStatus.alertasDuenoTelegramActivo"
+            class="btn-secondary border-red-500/40 text-red-400"
+            :disabled="loading"
+            @click="disableAlertasDueno"
+          >
+            Desactivar alertas
+          </button>
+        </div>
+        <p v-if="alertasStatus.alertasDuenoTelegramActivo" class="text-sm text-success">
+          ✓ Alertas activas{{ alertasStatus.telefono ? ` · Tel. ${alertasStatus.telefono}` : '' }}
+        </p>
+      </div>
+
+      <!-- Telegram 2FA -->
       <div class="card space-y-4">
         <h2 class="font-semibold text-brand">Telegram</h2>
         <p class="text-sm text-themed-muted">

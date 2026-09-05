@@ -4,12 +4,15 @@ import { NotificacionesService, MailService } from './notificaciones.service';
 import { NotificacionesController } from './notificaciones.controller';
 import { EmailProcessor } from './email.processor';
 import { NotificationsCronService } from './notifications-cron.service';
+import { TelegramDuenoNotifierService } from './telegram-dueno-notifier.service';
 import { PlantillasModule } from '../plantillas/plantillas.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({ name: 'email-notifications' }),
     PlantillasModule,
+    AuthModule,
   ],
   controllers: [NotificacionesController],
   providers: [
@@ -17,7 +20,8 @@ import { PlantillasModule } from '../plantillas/plantillas.module';
     MailService,
     EmailProcessor,
     NotificationsCronService,
+    TelegramDuenoNotifierService,
   ],
-  exports: [NotificacionesService],
+  exports: [NotificacionesService, TelegramDuenoNotifierService],
 })
 export class NotificacionesModule {}

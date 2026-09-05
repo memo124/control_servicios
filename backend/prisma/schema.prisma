@@ -124,6 +124,22 @@ model HistorialNotificacion {
   @@map("historial_notificaciones")
 }
 
+model HistorialNotificacionDueno {
+  id                Int      @id @default(autoincrement())
+  userId            Int      @map("user_id")
+  duenoNombre       String   @map("dueno_nombre") @db.VarChar(120)
+  telefono          String?  @db.VarChar(50)
+  telegramChatId    String   @map("telegram_chat_id") @db.VarChar(50)
+  suscripcionesCount Int     @map("suscripciones_count")
+  estadoEnvio       String   @map("estado_envio") @db.VarChar(50)
+  mensajeResumen    String?  @map("mensaje_resumen")
+  createdAt         DateTime @default(now()) @map("created_at")
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("historial_notificaciones_dueno")
+}
+
 model User {
   id                Int                @id @default(autoincrement())
   name              String             @db.VarChar(150)
@@ -133,6 +149,9 @@ model User {
   twoFactorEnabled  Boolean            @default(false) @map("two_factor_enabled")
   telegramChatId    String?            @map("telegram_chat_id") @db.VarChar(50)
   telegramEnabled   Boolean            @default(false) @map("telegram_enabled")
+  telefono          String?            @db.VarChar(50)
+  alertasDuenoTelegramActivo   Boolean @default(false) @map("alertas_dueno_telegram_activo")
+  alertasDuenoTelegramChatId   String? @map("alertas_dueno_telegram_chat_id") @db.VarChar(50)
   totpSecret        String?            @map("totp_secret") @db.VarChar(64)
   totpEnabled       Boolean            @default(false) @map("totp_enabled")
   createdAt         DateTime           @default(now()) @map("created_at")
@@ -140,6 +159,7 @@ model User {
   roles             RoleUser[]
   twoFactorCodes    TwoFactorCode[]
   qrLoginSessions   QrLoginSession[]
+  historialTelegramDueno HistorialNotificacionDueno[]
 
   @@map("users")
 }

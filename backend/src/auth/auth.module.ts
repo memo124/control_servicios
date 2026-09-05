@@ -7,6 +7,7 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { TwoFactorService } from './two-factor.service';
 import { TelegramService } from './telegram.service';
+import { AlertasDuenoService } from './alertas-dueno.service';
 import { QrLoginService } from './qr-login.service';
 
 @Module({
@@ -24,7 +25,7 @@ import { QrLoginService } from './qr-login.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, TwoFactorService, TelegramService, QrLoginService],
-  exports: [AuthService, TwoFactorService],
+  providers: [AuthService, JwtStrategy, TwoFactorService, TelegramService, QrLoginService, AlertasDuenoService],
+  exports: [AuthService, TwoFactorService, TelegramService],
 })
 export class AuthModule {}
