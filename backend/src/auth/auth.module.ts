@@ -6,13 +6,16 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { TwoFactorService } from './two-factor.service';
-import { TelegramService } from './telegram.service';
 import { AlertasDuenoService } from './alertas-dueno.service';
 import { QrLoginService } from './qr-login.service';
+import { TelegramModule } from '../telegram/telegram.module';
+import { PlantillasTelegramModule } from '../plantillas-telegram/plantillas-telegram.module';
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    TelegramModule,
+    PlantillasTelegramModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -25,7 +28,7 @@ import { QrLoginService } from './qr-login.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, TwoFactorService, TelegramService, QrLoginService, AlertasDuenoService],
-  exports: [AuthService, TwoFactorService, TelegramService],
+  providers: [AuthService, JwtStrategy, TwoFactorService, QrLoginService, AlertasDuenoService],
+  exports: [AuthService, TwoFactorService, TelegramModule],
 })
 export class AuthModule {}

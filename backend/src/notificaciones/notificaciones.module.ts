@@ -6,13 +6,15 @@ import { EmailProcessor } from './email.processor';
 import { NotificationsCronService } from './notifications-cron.service';
 import { TelegramDuenoNotifierService } from './telegram-dueno-notifier.service';
 import { PlantillasModule } from '../plantillas/plantillas.module';
-import { AuthModule } from '../auth/auth.module';
+import { PlantillasTelegramModule } from '../plantillas-telegram/plantillas-telegram.module';
+import { TelegramModule } from '../telegram/telegram.module';
 
 @Module({
   imports: [
     BullModule.registerQueue({ name: 'email-notifications' }),
     PlantillasModule,
-    AuthModule,
+    PlantillasTelegramModule,
+    TelegramModule,
   ],
   controllers: [NotificacionesController],
   providers: [

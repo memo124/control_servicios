@@ -16,6 +16,7 @@ const router = createRouter({
         { path: 'clientes', name: 'clientes', component: () => import('@/views/ClientesView.vue') },
         { path: 'cuentas', name: 'cuentas', component: () => import('@/views/CuentasView.vue') },
         { path: 'plantillas', name: 'plantillas', component: () => import('@/views/PlantillasView.vue') },
+        { path: 'plantillas-telegram', name: 'plantillas-telegram', component: () => import('@/views/PlantillasTelegramView.vue') },
         { path: 'usuarios', name: 'usuarios', component: () => import('@/views/UsuariosView.vue') },
         { path: 'notificaciones', name: 'notificaciones', component: () => import('@/views/NotificacionesView.vue') },
         { path: 'seguridad', name: 'seguridad', component: () => import('@/views/SecurityView.vue') },

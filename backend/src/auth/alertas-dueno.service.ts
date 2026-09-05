@@ -1,54 +1,90 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TelegramService } from './telegram.service';
+import { PlantillasTelegramService } from '../plantillas-telegram/plantillas-telegram.service';
 
 @Injectable()
 export class AlertasDuenoService {
   constructor(
     private prisma: PrismaService,
     private telegram: TelegramService,
+    private plantillas: PlantillasTelegramService,
   ) {}
+
+  private requireGroupChatId(): string {
+    const chatId = this.telegram.getGroupChatId();
+    if (!chatId) {
+      throw new BadRequestException(
+        'Telegram no configurado: define TELEGRAM_BOT_TOKEN y TELEGRAM_GROUP_CHAT_ID en backend/.env',
+      );
+    }
+    return chatId;
+  }
 
   async getStatus(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new BadRequestException('Usuario no encontrado');
-    const chatId = user.alertasDuenoTelegramChatId ?? user.telegramChatId;
     return {
       alertasDuenoTelegramActivo: user.alertasDuenoTelegramActivo,
       telefono: user.telefono,
-      alertasDuenoTelegramChatId: user.alertasDuenoTelegramChatId,
-      chatIdResuelto: chatId,
       telegramConfigured: this.telegram.isConfigured(),
+      groupChatConfigured: this.telegram.hasGroupChat(),
     };
   }
 
-  async setup(userId: number, chatId: string, telefono?: string) {
-    if (!chatId?.trim()) throw new BadRequestException('Chat ID de Telegram requerido');
+  async setup(userId: number, telefono?: string) {
+    const groupChatId = this.requireGroupChatId();
 
     await this.prisma.user.update({
       where: { id: userId },
       data: {
         alertasDuenoTelegramActivo: true,
-        alertasDuenoTelegramChatId: chatId.trim(),
         telefono: telefono?.trim() || undefined,
       },
     });
 
-    await this.telegram.sendMessage(
-      chatId.trim(),
-      `<b>Control Servicios</b>\n\n✅ Alertas de dueño activadas.\nRecibirás avisos por Telegram cuando tus clientes estén en <b>días de gracia</b> o <b>vencidos</b> (para que les escribas). Los clientes siguen recibiendo correo por separado.`,
-    );
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const texto = await this.plantillas.render('TELEGRAM_ALERTAS_SETUP', {
+      usuario: user?.name ?? 'Operador',
+    });
+    await this.telegram.sendMessage(groupChatId, texto);
 
-    return { enabled: true, message: 'Alertas de dueño activadas. Revisa Telegram.' };
+    return { enabled: true, message: 'Alertas activadas. Los avisos se publican en el grupo de Telegram.' };
+  }
+
+  async sendTest(userId: number) {
+    return this.sendTestToGroup(userId);
+  }
+
+  async sendTestToGroup(userId: number) {
+    const groupChatId = this.requireGroupChatId();
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const result = await this.plantillas.sendByCodigo('TELEGRAM_TEST_GRUPO', groupChatId, {
+      usuario: user?.name ?? 'Operador',
+    });
+    if (result.simulated) {
+      return {
+        ok: false,
+        simulated: true,
+        message: 'Bot no configurado. Revisa TELEGRAM_BOT_TOKEN en backend/.env',
+        destino: 'grupo',
+      };
+    }
+    if (!result.ok) {
+      throw new BadRequestException(result.error ?? 'No se pudo enviar al grupo');
+    }
+    return {
+      ok: true,
+      simulated: false,
+      message: 'Mensaje enviado al grupo de Telegram.',
+      destino: 'grupo',
+    };
   }
 
   async disable(userId: number) {
     await this.prisma.user.update({
       where: { id: userId },
-      data: {
-        alertasDuenoTelegramActivo: false,
-        alertasDuenoTelegramChatId: null,
-      },
+      data: { alertasDuenoTelegramActivo: false },
     });
     return { enabled: false };
   }

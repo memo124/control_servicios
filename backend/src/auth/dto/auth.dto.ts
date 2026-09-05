@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Length, MinLength } from 'class-validator';
+import { IsEmail, IsIn, IsNotEmpty, IsOptional, IsString, Length, MinLength } from 'class-validator';
 
 export class LoginDto {
   @IsEmail()
@@ -23,6 +23,39 @@ export class RegisterUserDto {
 
   @IsString()
   roleSlug!: string;
+
+  @IsOptional()
+  @IsString()
+  telefono?: string;
+}
+
+export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  name?: string;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(8)
+  password?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  roleSlug?: string;
+
+  @IsOptional()
+  @IsIn(['active', 'inactive'])
+  status?: string;
+
+  @IsOptional()
+  @IsString()
+  telefono?: string;
 }
 
 export class Verify2FADto {
@@ -35,17 +68,9 @@ export class Verify2FADto {
   code!: string;
 }
 
-export class SetupTelegramDto {
-  @IsString()
-  @IsNotEmpty()
-  chatId!: string;
-}
+export class SetupTelegramDto {}
 
 export class SetupAlertasDuenoDto {
-  @IsString()
-  @IsNotEmpty()
-  chatId!: string;
-
   @IsString()
   @IsOptional()
   telefono?: string;

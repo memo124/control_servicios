@@ -111,6 +111,18 @@ model PlantillaCorreo {
   @@map("plantillas_correo")
 }
 
+model PlantillaTelegram {
+  id                   Int      @id @default(autoincrement())
+  codigo               String   @unique @db.VarChar(50)
+  titulo               String   @db.VarChar(200)
+  cuerpoTexto          String   @map("cuerpo_texto")
+  variablesDisponibles Json     @map("variables_disponibles")
+  activo               Boolean  @default(true)
+  createdAt            DateTime @default(now()) @map("created_at")
+
+  @@map("plantillas_telegram")
+}
+
 model HistorialNotificacion {
   id              Int                @id @default(autoincrement())
   suscripcionId   Int                @map("suscripcion_id")

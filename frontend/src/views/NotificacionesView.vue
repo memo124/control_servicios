@@ -92,7 +92,7 @@ onMounted(load);
       <div>
         <h1 class="text-2xl font-bold">Notificaciones</h1>
         <p class="text-sm text-themed-muted mt-1">
-          Correo → clientes · Telegram → dueños de cuenta (para escribirles)
+          Correo → clientes · Telegram → grupo del equipo (dueños con alertas activas)
         </p>
       </div>
       <div class="flex flex-wrap gap-2">
@@ -112,8 +112,8 @@ onMounted(load);
 
     <h2 class="font-semibold mb-3">Telegram — Dueños con clientes en gracia/vencidos ({{ pendientesTelegram.length }})</h2>
     <p class="text-xs text-themed-muted mb-3">
-      Cada dueño debe activar alertas en <router-link to="/seguridad" class="text-link">Seguridad</router-link>.
-      El mensaje va al Telegram del operador (Guillermo, Oscar…), no al cliente.
+      Cada dueño activa alertas en <router-link to="/seguridad" class="text-link">Seguridad</router-link>.
+      Los mensajes se publican en el grupo Telegram del .env, no en chats individuales.
     </p>
     <div class="space-y-2 mb-8">
       <div v-for="d in pendientesTelegram" :key="d.duenoNombre" class="card text-sm">

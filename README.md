@@ -1,4 +1,4 @@
-# Control Servicios v1.4.1
+# Control Servicios v1.5.0
 
 Plataforma full-stack para administración de suscripciones de streaming, control financiero de ganancias y envío de avisos de cobro por correo electrónico.
 
@@ -109,30 +109,49 @@ Respuesta:
 
 Requiere permiso `suscripciones.editar`.
 
-## Alertas Telegram a dueños (v1.4.0)
+## Telegram y plantillas (v1.5.0)
 
-Los **clientes** reciben **correo** (Resend). Los **dueños de cuenta** (Guillermo, Oscar, Enzo, Eric) reciben **Telegram** para saber a quién escribir por WhatsApp/teléfono.
+Los **clientes** reciben **correo** (Resend). Los **dueños** reciben resúmenes en un **grupo de Telegram** del equipo — todo centralizado en `.env`, **sin Chat ID en la base de datos**.
 
 | Canal | Destinatario | Cuándo |
 |-------|--------------|--------|
 | Correo | Cliente (`cliente.email`) | Vence hoy, en gracia, vencida |
-| Telegram | Dueño (`User.name` = `dueno_nombre`) | Mismo criterio, resumen agrupado |
+| Telegram | Grupo (`TELEGRAM_GROUP_CHAT_ID`) | Resumen por dueño con alertas activas |
 
-### Configurar (cada dueño/operador)
+### Variables en `backend/.env`
 
-1. Crear bot con @BotFather → `TELEGRAM_BOT_TOKEN` en `backend/.env`
-2. Obtener Chat ID con @userinfobot
-3. **Seguridad → Alertas Telegram — Dueño de cuenta** → Chat ID + teléfono (referencia)
-4. El nombre del usuario debe coincidir con `dueno_nombre` en cuentas (ej. `Guillermo`)
+```env
+TELEGRAM_BOT_TOKEN="token_de_BotFather"
+TELEGRAM_GROUP_CHAT_ID="-5442163471"   # Id negativo del grupo
+```
 
-### Enviar manualmente
+1. Crear bot con @BotFather → pegar token en `TELEGRAM_BOT_TOKEN`
+2. Crear grupo, **agregar el bot** (mejor como admin)
+3. Obtener Id del grupo con @getidsbot o @RawDataBot dentro del grupo
+4. Reiniciar backend
+
+### Por operador (en la app, sin Chat ID)
+
+- **Seguridad → Activar mis alertas en el grupo** — el nombre del usuario debe coincidir con `dueno_nombre` en cuentas (ej. Guillermo)
+- **Seguridad → Enviar mensaje de prueba al grupo**
+- **Plantillas Telegram** — editar textos (2FA, alertas, prueba) y enviar prueba al grupo
+- **Usuarios** — editar operadores (nombre, email, rol, teléfono de referencia, contraseña)
+
+### Enviar alertas manualmente
 
 **Notificaciones → Telegram a dueños** (o cron diario 6:00 AM con los correos).
 
 ```http
 POST /api/notificaciones/telegram-duenos/ejecutar
 GET  /api/notificaciones/telegram-duenos/pendientes
+POST /api/auth/telegram/test-group          # Prueba al grupo
+GET  /api/plantillas-telegram               # Plantillas Telegram (admin)
+PATCH /api/users/:id                        # Editar usuario (admin)
 ```
+
+### 2FA por Telegram
+
+Los códigos de login se publican en el **mismo grupo** (con el nombre del usuario). Alternativa recomendada: **TOTP / QR** (Google Authenticator).
 
 ## Resiliencia en el frontend
 
@@ -275,11 +294,16 @@ control_servicios/
 | GET | /api/clientes | CRUD clientes |
 | GET | /api/cuentas | Cuentas y dueños |
 | GET | /api/plantillas | Plantillas de correo |
+| GET | /api/plantillas-telegram | Plantillas Telegram (HTML) |
+| PATCH | /api/plantillas-telegram/:id | Editar plantilla Telegram |
+| POST | /api/plantillas-telegram/:id/enviar-prueba | Prueba al grupo del .env |
 | POST | /api/notificaciones/ejecutar | Correo manual a clientes |
-| POST | /api/notificaciones/telegram-duenos/ejecutar | Telegram manual a dueños |
-| GET | /api/notificaciones/telegram-duenos/pendientes | Dueños con alertas y clientes pendientes |
-| POST | /api/auth/alertas-dueno/setup | Configurar Telegram del dueño |
-| GET | /api/users | Gestión de usuarios (solo admin) |
+| POST | /api/notificaciones/telegram-duenos/ejecutar | Telegram manual (grupo) |
+| GET | /api/notificaciones/telegram-duenos/pendientes | Dueños con alertas activas |
+| POST | /api/auth/alertas-dueno/setup | Activar alertas del dueño (sin Chat ID) |
+| POST | /api/auth/telegram/test-group | Mensaje de prueba al grupo |
+| GET | /api/users | Listar usuarios (admin) |
+| PATCH | /api/users/:id | Editar usuario (admin) |
 
 ## Variables de entorno
 
@@ -299,17 +323,30 @@ El historial de versiones se gestiona en la tabla `system_versions` y es visible
 
 Ver [docs/THEMES.md](docs/THEMES.md) para el sistema de variables CSS, clases utilitarias y la corrección aplicada en v1.2.1.
 
-Tras actualizar a **v1.4.1** (o desde v1.4.0):
+Tras actualizar a **v1.5.0**:
 
 ```bash
 cd backend
-npx prisma migrate deploy
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.4.0.sql
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.4.1.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20260905150000_plantillas_telegram/migration.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.0.sql
 npm run db:seed
 ```
 
-Actualizar `APP_VERSION="1.4.1"` en `backend/.env`.
+Variables Telegram en `backend/.env`:
+
+```env
+TELEGRAM_BOT_TOKEN="..."
+TELEGRAM_GROUP_CHAT_ID="-5442163471"
+APP_VERSION="1.5.0"
+```
+
+Si vienes de v1.4.x y aún no aplicaste migraciones anteriores:
+
+```bash
+npx prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20260905130000_alertas_telegram_dueno/migration.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.4.0.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.4.1.sql
+```
 
 Para sincronizar datos de seed (cuentas, clientes, suscripciones):
 

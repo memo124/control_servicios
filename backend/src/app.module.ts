@@ -13,6 +13,7 @@ import { ClientesModule } from './clientes/clientes.module';
 import { SuscripcionesModule } from './suscripciones/suscripciones.module';
 import { FinanzasModule } from './finanzas/finanzas.module';
 import { PlantillasModule } from './plantillas/plantillas.module';
+import { PlantillasTelegramModule } from './plantillas-telegram/plantillas-telegram.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { SystemModule } from './system/system.module';
 import { EstadosModule } from './estados/estados.module';
@@ -57,6 +58,7 @@ import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
     SuscripcionesModule,
     FinanzasModule,
     PlantillasModule,
+    PlantillasTelegramModule,
     NotificacionesModule,
     SystemModule,
     EstadosModule,

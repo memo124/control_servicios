@@ -331,6 +331,58 @@ async function main() {
     },
   });
 
+  const plantillasTelegram = [
+    {
+      codigo: 'TELEGRAM_TEST',
+      titulo: 'Mensaje de prueba',
+      cuerpoTexto: '<b>Control Servicios</b>\n\n✅ Mensaje de prueba.\nSi ves esto, Telegram está configurado correctamente.',
+      variablesDisponibles: [],
+    },
+    {
+      codigo: 'TELEGRAM_2FA_CODE',
+      titulo: 'Código 2FA',
+      cuerpoTexto: '<b>Control Servicios — 2FA</b>\n<b>Usuario:</b> {{usuario}}\n\nCódigo:\n<code>{{code}}</code>\n\nExpira en 5 minutos.',
+      variablesDisponibles: ['code', 'usuario'],
+    },
+    {
+      codigo: 'TELEGRAM_ALERTAS_SETUP',
+      titulo: 'Confirmación alertas dueño',
+      cuerpoTexto: '<b>Control Servicios</b>\n\n✅ Alertas activadas para <b>{{usuario}}</b>.\nLos avisos de clientes en gracia/vencidos se publican en este grupo.',
+      variablesDisponibles: ['usuario'],
+    },
+    {
+      codigo: 'TELEGRAM_ALERTAS_HEADER',
+      titulo: 'Resumen alertas — encabezado',
+      cuerpoTexto: '<b>🔔 Control Servicios</b>\n<b>Dueño:</b> {{dueno_nombre}}\n\nClientes que requieren que les escribas (el correo ya avisa al cliente):\n',
+      variablesDisponibles: ['dueno_nombre'],
+    },
+    {
+      codigo: 'TELEGRAM_TEST_GRUPO',
+      titulo: 'Prueba al grupo de Telegram',
+      cuerpoTexto:
+        '<b>Control Servicios</b>\n\n✅ Mensaje de prueba al <b>grupo</b>.\nEnviado por: {{usuario}}\nSi ves esto, el bot puede publicar en el chat grupal.',
+      variablesDisponibles: ['usuario'],
+    },
+    {
+      codigo: 'TELEGRAM_ALERTAS_FOOTER',
+      titulo: 'Resumen alertas — pie',
+      cuerpoTexto: '<i>Responde a tus clientes por WhatsApp o teléfono.</i>',
+      variablesDisponibles: [],
+    },
+  ];
+
+  for (const tpl of plantillasTelegram) {
+    await prisma.plantillaTelegram.upsert({
+      where: { codigo: tpl.codigo },
+      update: {
+        titulo: tpl.titulo,
+        cuerpoTexto: tpl.cuerpoTexto,
+        variablesDisponibles: tpl.variablesDisponibles,
+      },
+      create: tpl,
+    });
+  }
+
   await prisma.systemVersion.upsert({
     where: { id: 1 },
     update: {},
@@ -344,6 +396,13 @@ async function main() {
   });
 
   const changelogEntries = [
+    {
+      version: '1.5.0',
+      titulo: 'Telegram por grupo y plantillas editables',
+      descripcion:
+        'Telegram centralizado en TELEGRAM_GROUP_CHAT_ID (.env). Plantillas Telegram, PATCH /users/:id, teléfono en usuarios.',
+      tipo: 'minor',
+    },
     {
       version: '1.4.1',
       titulo: 'Corrección email operador Guillermo',

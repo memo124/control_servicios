@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { RouterLink, RouterView, useRoute } from 'vue-router';
 import {
-  LayoutDashboard, Users, CreditCard, Building2, Mail, UserCog, Bell, Info, Menu, X, LogOut, Shield,
+  LayoutDashboard, Users, CreditCard, Building2, Mail, UserCog, Bell, Info, Menu, X, LogOut, Shield, Send,
 } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 import ThemeToggle from '@/components/ui/ThemeToggle.vue';
@@ -17,7 +17,8 @@ const navItems = computed(() => [
   { to: '/suscripciones', icon: CreditCard, label: 'Suscripciones', show: auth.hasPermission('suscripciones.ver') },
   { to: '/clientes', icon: Users, label: 'Clientes', show: auth.hasPermission('clientes.gestionar') || auth.hasPermission('suscripciones.ver') },
   { to: '/cuentas', icon: Building2, label: 'Cuentas', show: auth.hasPermission('cuentas.gestionar') },
-  { to: '/plantillas', icon: Mail, label: 'Plantillas', show: auth.hasPermission('plantillas.editar') },
+  { to: '/plantillas', icon: Mail, label: 'Plantillas correo', show: auth.hasPermission('plantillas.editar') },
+  { to: '/plantillas-telegram', icon: Send, label: 'Plantillas Telegram', show: auth.hasPermission('plantillas.editar') },
   { to: '/notificaciones', icon: Bell, label: 'Notificaciones', show: auth.hasPermission('correos.enviar') },
   { to: '/seguridad', icon: Shield, label: 'Seguridad', show: true },
   { to: '/usuarios', icon: UserCog, label: 'Usuarios', show: auth.hasPermission('usuarios.gestionar') },

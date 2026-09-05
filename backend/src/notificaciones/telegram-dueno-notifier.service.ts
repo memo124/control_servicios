@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { TelegramService } from '../auth/telegram.service';
+import { PlantillasTelegramService } from '../plantillas-telegram/plantillas-telegram.service';
 import type { SuscripcionDetalle } from '../suscripciones/suscripciones.service';
 
 export interface DuenoTelegramPendiente {
   duenoNombre: string;
   userId: number;
   telefono: string | null;
-  telegramChatId: string;
   venceHoy: number;
   enGracia: number;
   vencidas: number;
@@ -21,18 +21,12 @@ export class TelegramDuenoNotifierService {
   constructor(
     private prisma: PrismaService,
     private telegram: TelegramService,
+    private plantillas: PlantillasTelegramService,
   ) {}
 
   private formatDate(d: Date | string): string {
     const date = typeof d === 'string' ? new Date(d) : d;
     return date.toISOString().split('T')[0];
-  }
-
-  resolveChatId(user: {
-    alertasDuenoTelegramChatId: string | null;
-    telegramChatId: string | null;
-  }): string | null {
-    return user.alertasDuenoTelegramChatId ?? user.telegramChatId;
   }
 
   async getSuscripcionesParaDuenos(): Promise<SuscripcionDetalle[]> {
@@ -45,6 +39,8 @@ export class TelegramDuenoNotifierService {
   }
 
   async getPendientesTelegramDuenos(): Promise<DuenoTelegramPendiente[]> {
+    if (!this.telegram.hasGroupChat()) return [];
+
     const rows = await this.getSuscripcionesParaDuenos();
     const byDueno = new Map<string, SuscripcionDetalle[]>();
     for (const r of rows) {
@@ -55,15 +51,11 @@ export class TelegramDuenoNotifierService {
 
     const operadores = await this.prisma.user.findMany({
       where: { alertasDuenoTelegramActivo: true, status: 'active' },
-      include: { roles: { include: { role: true } } },
     });
 
     const pendientes: DuenoTelegramPendiente[] = [];
 
     for (const user of operadores) {
-      const chatId = this.resolveChatId(user);
-      if (!chatId) continue;
-
       const subs = byDueno.get(user.name) ?? [];
       if (subs.length === 0) continue;
 
@@ -71,7 +63,6 @@ export class TelegramDuenoNotifierService {
         duenoNombre: user.name,
         userId: user.id,
         telefono: user.telefono,
-        telegramChatId: chatId,
         venceHoy: subs.filter((s) => s.estado_codigo === 'VENCE_HOY').length,
         enGracia: subs.filter((s) => s.estado_codigo === 'EN_GRACIA').length,
         vencidas: subs.filter((s) => s.estado_codigo === 'VENCIDA').length,
@@ -82,17 +73,13 @@ export class TelegramDuenoNotifierService {
     return pendientes;
   }
 
-  buildMessage(duenoNombre: string, subs: SuscripcionDetalle[]): string {
+  async buildMessage(duenoNombre: string, subs: SuscripcionDetalle[]): Promise<string> {
     const venceHoy = subs.filter((s) => s.estado_codigo === 'VENCE_HOY');
     const enGracia = subs.filter((s) => s.estado_codigo === 'EN_GRACIA');
     const vencidas = subs.filter((s) => s.estado_codigo === 'VENCIDA');
 
     const lines: string[] = [
-      `<b>🔔 Control Servicios</b>`,
-      `<b>Dueño:</b> ${duenoNombre}`,
-      ``,
-      `Clientes que requieren que les escribas (el correo ya avisa al cliente):`,
-      ``,
+      await this.plantillas.render('TELEGRAM_ALERTAS_HEADER', { dueno_nombre: duenoNombre }),
     ];
 
     const section = (title: string, items: SuscripcionDetalle[], emoji: string) => {
@@ -117,11 +104,17 @@ export class TelegramDuenoNotifierService {
     section('En días de gracia', enGracia, '⚠️');
     section('Vencidas / cortadas', vencidas, '❌');
 
-    lines.push('<i>Responde a tus clientes por WhatsApp o teléfono.</i>');
+    lines.push(await this.plantillas.render('TELEGRAM_ALERTAS_FOOTER'));
     return lines.join('\n');
   }
 
   async enviarAlertasDuenos(): Promise<{ enviados: number; omitidos: number; errores: number }> {
+    const groupChatId = this.telegram.getGroupChatId();
+    if (!groupChatId) {
+      this.logger.warn('TELEGRAM_GROUP_CHAT_ID no configurado — omitiendo alertas Telegram');
+      return { enviados: 0, omitidos: 0, errores: 0 };
+    }
+
     const rows = await this.getSuscripcionesParaDuenos();
     const byDueno = new Map<string, SuscripcionDetalle[]>();
     for (const r of rows) {
@@ -145,14 +138,9 @@ export class TelegramDuenoNotifierService {
         continue;
       }
 
-      const chatId = this.resolveChatId(user);
-      if (!chatId) {
-        omitidos++;
-        continue;
-      }
-
-      const texto = this.buildMessage(user.name, subs);
-      const ok = await this.telegram.sendMessage(chatId, texto);
+      const texto = await this.buildMessage(user.name, subs);
+      const sendResult = await this.telegram.sendMessage(groupChatId, texto);
+      const ok = sendResult.ok;
       const estadoEnvio = ok ? 'enviado' : 'error';
 
       await this.prisma.historialNotificacionDueno.create({
@@ -160,7 +148,7 @@ export class TelegramDuenoNotifierService {
           userId: user.id,
           duenoNombre: user.name,
           telefono: user.telefono,
-          telegramChatId: chatId,
+          telegramChatId: groupChatId,
           suscripcionesCount: subs.length,
           estadoEnvio,
           mensajeResumen: `${subs.length} suscripción(es): ${subs.map((s) => s.cliente_nombre).join(', ').slice(0, 200)}`,
@@ -169,7 +157,7 @@ export class TelegramDuenoNotifierService {
 
       if (ok) {
         enviados++;
-        this.logger.log(`Telegram dueño ${user.name}: ${subs.length} alerta(s)`);
+        this.logger.log(`Telegram grupo — dueño ${user.name}: ${subs.length} alerta(s)`);
       } else {
         errores++;
       }

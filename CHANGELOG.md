@@ -4,6 +4,22 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.5.0] - 2026-09-05
+
+### Added
+- **Plantillas Telegram** editables (`/plantillas-telegram`) con prueba al grupo
+- Tabla `plantillas_telegram` y módulo `plantillas-telegram`
+- Envío centralizado al **grupo** vía `TELEGRAM_GROUP_CHAT_ID` en `.env`
+- `POST /api/auth/telegram/test-group` — mensaje de prueba al grupo
+- **Edición de usuarios** (`PATCH /api/users/:id`): nombre, email, rol, teléfono, contraseña, estado
+- Campo **teléfono** en gestión de usuarios (referencia de contacto, no Chat ID)
+
+### Changed
+- Telegram ya **no guarda Chat ID en BD** — solo bot + grupo en variables de entorno
+- Alertas de dueño, 2FA Telegram y pruebas de plantillas van al grupo configurado
+- Vista **Seguridad** simplificada (activar alertas por usuario, sin pegar Id)
+- Mensajes de error de Telegram más claros (bot vs grupo vs permisos)
+
 ## [1.4.1] - 2026-09-05
 
 ### Fixed
@@ -91,6 +107,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.5.0]: https://github.com/memo124/control_servicios/releases/tag/v1.5.0
 [1.4.1]: https://github.com/memo124/control_servicios/releases/tag/v1.4.1
 [1.4.0]: https://github.com/memo124/control_servicios/releases/tag/v1.4.0
 [1.3.0]: https://github.com/memo124/control_servicios/releases/tag/v1.3.0

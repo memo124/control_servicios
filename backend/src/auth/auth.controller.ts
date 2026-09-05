@@ -14,7 +14,6 @@ import { QrLoginService } from './qr-login.service';
 import {
   LoginDto,
   Verify2FADto,
-  SetupTelegramDto,
   SetupAlertasDuenoDto,
   ConfirmTotpDto,
   QrAuthorizeDto,
@@ -78,8 +77,8 @@ export class AuthController {
 
   @Post('2fa/setup/telegram')
   @UseGuards(JwtAuthGuard)
-  setupTelegram(@CurrentUser() user: AuthUser, @Body() dto: SetupTelegramDto) {
-    return this.twoFactor.setupTelegram(user.id, dto.chatId);
+  setupTelegram(@CurrentUser() user: AuthUser) {
+    return this.twoFactor.setupTelegram(user.id);
   }
 
   @Post('2fa/disable')
@@ -97,13 +96,25 @@ export class AuthController {
   @Post('alertas-dueno/setup')
   @UseGuards(JwtAuthGuard)
   setupAlertasDueno(@CurrentUser() user: AuthUser, @Body() dto: SetupAlertasDuenoDto) {
-    return this.alertasDueno.setup(user.id, dto.chatId, dto.telefono);
+    return this.alertasDueno.setup(user.id, dto.telefono);
   }
 
   @Post('alertas-dueno/disable')
   @UseGuards(JwtAuthGuard)
   disableAlertasDueno(@CurrentUser() user: AuthUser) {
     return this.alertasDueno.disable(user.id);
+  }
+
+  @Post('alertas-dueno/test')
+  @UseGuards(JwtAuthGuard)
+  testAlertasDueno(@CurrentUser() user: AuthUser) {
+    return this.alertasDueno.sendTest(user.id);
+  }
+
+  @Post('telegram/test-group')
+  @UseGuards(JwtAuthGuard)
+  testTelegramGroup(@CurrentUser() user: AuthUser) {
+    return this.alertasDueno.sendTestToGroup(user.id);
   }
 
   @Post('qr/session')

@@ -7,8 +7,6 @@ import QrCanvas from '@/components/ui/QrCanvas.vue';
 
 const toast = useToast();
 const status = ref<Record<string, unknown>>({});
-const telegramChatId = ref('');
-const alertasChatId = ref('');
 const alertasTelefono = ref('');
 const alertasStatus = ref<Record<string, unknown>>({});
 const totpCode = ref('');
@@ -22,7 +20,6 @@ async function loadStatus() {
   ]);
   status.value = s.data;
   alertasStatus.value = a.data;
-  if (a.data.alertasDuenoTelegramChatId) alertasChatId.value = String(a.data.alertasDuenoTelegramChatId);
   if (a.data.telefono) alertasTelefono.value = String(a.data.telefono);
 }
 
@@ -30,13 +27,13 @@ async function setupAlertasDueno() {
   loading.value = true;
   try {
     await api.post('/auth/alertas-dueno/setup', {
-      chatId: alertasChatId.value,
       telefono: alertasTelefono.value || undefined,
     });
-    toast.success('Alertas activadas', 'Revisa Telegram para confirmar');
+    toast.success('Alertas activadas', 'Los avisos se publican en el grupo de Telegram');
     await loadStatus();
-  } catch {
-    toast.error('Error', 'No se pudieron activar las alertas');
+  } catch (e: unknown) {
+    const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+    toast.error('Error', msg ?? 'No se pudieron activar las alertas');
   } finally {
     loading.value = false;
   }
@@ -53,14 +50,32 @@ async function disableAlertasDueno() {
   }
 }
 
+async function testTelegramGroup() {
+  loading.value = true;
+  try {
+    const { data } = await api.post('/auth/telegram/test-group', {});
+    if (data.simulated) {
+      toast.warning('Bot no configurado', data.message);
+    } else {
+      toast.success('Enviado al grupo', data.message);
+    }
+  } catch (e: unknown) {
+    const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+    toast.error('Error', msg ?? 'No se pudo enviar al grupo');
+  } finally {
+    loading.value = false;
+  }
+}
+
 async function setupTelegram() {
   loading.value = true;
   try {
-    await api.post('/auth/2fa/setup/telegram', { chatId: telegramChatId.value });
-    toast.success('Telegram configurado', 'Revisa tu chat para el código de prueba');
+    await api.post('/auth/2fa/setup/telegram', {});
+    toast.success('Telegram 2FA', 'Código de prueba enviado al grupo');
     await loadStatus();
-  } catch {
-    toast.error('Error', 'No se pudo configurar Telegram');
+  } catch (e: unknown) {
+    const msg = (e as { response?: { data?: { message?: string } } })?.response?.data?.message;
+    toast.error('Error', msg ?? 'No se pudo configurar Telegram 2FA');
   } finally {
     loading.value = false;
   }
@@ -111,32 +126,58 @@ onMounted(loadStatus);
   <div>
     <h1 class="text-2xl font-bold mb-2">Seguridad y 2FA</h1>
     <p class="text-sm text-themed-muted mb-6">
-      Protege tu cuenta con códigos por Telegram o app autenticadora (QR).
+      Telegram se configura solo en el servidor (<code class="text-xs">backend/.env</code>).
+      No se guardan Chat ID en la base de datos.
     </p>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Alertas dueño Telegram -->
+      <!-- Telegram centralizado -->
       <div class="card space-y-4 lg:col-span-2 border-brand/30">
-        <h2 class="font-semibold text-brand">Alertas Telegram — Dueño de cuenta</h2>
+        <h2 class="font-semibold text-brand">Telegram (grupo del equipo)</h2>
         <p class="text-sm text-themed-muted">
-          Recibe en <b>tu Telegram</b> (no el del cliente) un resumen de clientes en
-          <b>días de gracia</b> o <b>vencidos</b> para escribirles por WhatsApp/teléfono.
-          Los clientes siguen recibiendo <b>correo</b> por separado.
+          Todos los mensajes (alertas de dueños, pruebas, códigos 2FA) van al grupo definido en
+          <code class="text-xs">TELEGRAM_GROUP_CHAT_ID</code>.
         </p>
-        <p class="text-xs text-themed-muted">
-          Obtén tu Chat ID con @userinfobot en Telegram. El teléfono es solo referencia tuya en el sistema.
+        <ul class="text-xs text-themed-muted list-disc pl-5 space-y-1">
+          <li><code class="text-xs">TELEGRAM_BOT_TOKEN</code> — token de @BotFather</li>
+          <li><code class="text-xs">TELEGRAM_GROUP_CHAT_ID</code> — Id negativo del grupo (ej. -5442163471)</li>
+          <li>Agrega el bot al grupo como admin antes de probar</li>
+        </ul>
+        <p v-if="alertasStatus.groupChatConfigured && alertasStatus.telegramConfigured" class="text-sm text-success">
+          ✓ Bot y grupo configurados en el servidor
         </p>
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <FormField label="Chat ID de Telegram" hint="Ej: 123456789">
-            <input v-model="alertasChatId" class="input" placeholder="123456789" />
-          </FormField>
-          <FormField label="Teléfono (referencia)" hint="Opcional — no envía SMS, solo se guarda">
-            <input v-model="alertasTelefono" class="input" placeholder="+502 1234-5678" />
-          </FormField>
-        </div>
+        <p v-else-if="!alertasStatus.telegramConfigured" class="text-sm text-cost">
+          ⚠ Falta TELEGRAM_BOT_TOKEN en backend/.env
+        </p>
+        <p v-else class="text-sm text-cost">
+          ⚠ Falta TELEGRAM_GROUP_CHAT_ID en backend/.env
+        </p>
+        <button
+          class="btn-secondary"
+          :disabled="loading || !alertasStatus.groupChatConfigured"
+          @click="testTelegramGroup"
+        >
+          Enviar mensaje de prueba al grupo
+        </button>
+      </div>
+
+      <!-- Alertas dueño -->
+      <div class="card space-y-4 lg:col-span-2 border-indigo-500/30">
+        <h2 class="font-semibold text-brand">Alertas de dueño en el grupo</h2>
+        <p class="text-sm text-themed-muted">
+          Activa tu usuario para que, cuando tus clientes estén en gracia o vencidos, se publique
+          un resumen en el <b>grupo de Telegram</b> (no al cliente — el cliente recibe correo).
+        </p>
+        <FormField label="Teléfono (referencia en usuarios)" hint="Opcional — solo se guarda en tu perfil">
+          <input v-model="alertasTelefono" class="input" placeholder="+502 1234-5678" />
+        </FormField>
         <div class="flex flex-wrap gap-2">
-          <button class="btn-primary" :disabled="loading || !alertasChatId" @click="setupAlertasDueno">
-            Activar alertas de dueño
+          <button
+            class="btn-primary"
+            :disabled="loading || !alertasStatus.groupChatConfigured"
+            @click="setupAlertasDueno"
+          >
+            Activar mis alertas en el grupo
           </button>
           <button
             v-if="alertasStatus.alertasDuenoTelegramActivo"
@@ -144,28 +185,28 @@ onMounted(loadStatus);
             :disabled="loading"
             @click="disableAlertasDueno"
           >
-            Desactivar alertas
+            Desactivar mis alertas
           </button>
         </div>
         <p v-if="alertasStatus.alertasDuenoTelegramActivo" class="text-sm text-success">
-          ✓ Alertas activas{{ alertasStatus.telefono ? ` · Tel. ${alertasStatus.telefono}` : '' }}
+          ✓ Tus alertas están activas{{ alertasTelefono ? ` · Tel. ${alertasTelefono}` : '' }}
         </p>
       </div>
 
       <!-- Telegram 2FA -->
       <div class="card space-y-4">
-        <h2 class="font-semibold text-brand">Telegram</h2>
+        <h2 class="font-semibold text-brand">2FA por Telegram</h2>
         <p class="text-sm text-themed-muted">
-          Crea un bot con @BotFather, obtén tu Chat ID y configura
-          <code class="text-xs">TELEGRAM_BOT_TOKEN</code> en el servidor.
+          Los códigos de login se envían al <b>grupo</b> (con tu nombre). Requiere grupo configurado en .env.
         </p>
-        <FormField label="Chat ID de Telegram" hint="Ej: 123456789 (usa @userinfobot para obtenerlo)">
-          <input v-model="telegramChatId" class="input" placeholder="123456789" />
-        </FormField>
-        <button class="btn-primary w-full" :disabled="loading || !telegramChatId" @click="setupTelegram">
+        <button
+          class="btn-primary w-full"
+          :disabled="loading || !alertasStatus.groupChatConfigured"
+          @click="setupTelegram"
+        >
           Activar Telegram 2FA
         </button>
-        <p v-if="status.telegramEnabled" class="text-sm text-success">✓ Telegram activo</p>
+        <p v-if="status.telegramEnabled" class="text-sm text-success">✓ Telegram 2FA activo</p>
       </div>
 
       <!-- TOTP / QR -->

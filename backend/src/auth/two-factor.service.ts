@@ -5,6 +5,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { TelegramService } from './telegram.service';
+import { PlantillasTelegramService } from '../plantillas-telegram/plantillas-telegram.service';
 import { generateSecret, generateTotp, verifyTotp, buildOtpAuthUrl } from './utils/totp.util';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class TwoFactorService {
     private jwt: JwtService,
     private config: ConfigService,
     private telegram: TelegramService,
+    private plantillas: PlantillasTelegramService,
   ) {}
 
   userHas2FA(user: {
@@ -60,12 +62,20 @@ export class TwoFactorService {
 
   async sendTelegramCode(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user?.telegramChatId || !user.telegramEnabled) {
+    if (!user?.telegramEnabled) {
       throw new BadRequestException('Telegram 2FA no configurado');
+    }
+    const chatId = this.telegram.getGroupChatId();
+    if (!chatId) {
+      throw new BadRequestException('TELEGRAM_GROUP_CHAT_ID no configurado en backend/.env');
     }
     const code = crypto.randomInt(100000, 999999).toString();
     await this.storeCode(userId, code, 'telegram');
-    await this.telegram.sendCode(user.telegramChatId, code);
+    const texto = await this.plantillas.render('TELEGRAM_2FA_CODE', {
+      code,
+      usuario: user.name,
+    });
+    await this.telegram.sendMessage(chatId, texto);
   }
 
   async verifyCode(userId: number, code: string): Promise<boolean> {
@@ -121,13 +131,17 @@ export class TwoFactorService {
     return { enabled: true };
   }
 
-  async setupTelegram(userId: number, chatId: string) {
+  async setupTelegram(userId: number) {
+    const chatId = this.telegram.getGroupChatId();
+    if (!chatId) {
+      throw new BadRequestException('TELEGRAM_GROUP_CHAT_ID no configurado en backend/.env');
+    }
     await this.prisma.user.update({
       where: { id: userId },
-      data: { telegramChatId: chatId, telegramEnabled: true, twoFactorEnabled: true },
+      data: { telegramEnabled: true, twoFactorEnabled: true },
     });
     await this.sendTelegramCode(userId);
-    return { enabled: true, message: 'Código de prueba enviado a Telegram' };
+    return { enabled: true, message: 'Código de prueba enviado al grupo de Telegram' };
   }
 
   async disable2FA(userId: number) {
@@ -137,7 +151,6 @@ export class TwoFactorService {
         twoFactorEnabled: false,
         telegramEnabled: false,
         totpEnabled: false,
-        telegramChatId: null,
         totpSecret: null,
       },
     });
@@ -151,7 +164,7 @@ export class TwoFactorService {
       telegramEnabled: user.telegramEnabled,
       totpEnabled: user.totpEnabled,
       telegramConfigured: this.telegram.isConfigured(),
-      hasTelegramChatId: !!user.telegramChatId,
+      groupChatConfigured: this.telegram.hasGroupChat(),
     };
   }
 }
