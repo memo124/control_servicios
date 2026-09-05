@@ -5,9 +5,12 @@ import { PrismaService } from '../prisma/prisma.service';
 export class CuentasService {
   constructor(private prisma: PrismaService) {}
 
-  findAll(plataformaId?: number) {
+  findAll(plataformaId?: number, duenoNombre?: string) {
     return this.prisma.cuentaPlataforma.findMany({
-      where: plataformaId ? { plataformaId } : undefined,
+      where: {
+        ...(plataformaId ? { plataformaId } : {}),
+        ...(duenoNombre ? { duenoNombre } : {}),
+      },
       include: { plataforma: true, suscripciones: { where: { activo: true } } },
       orderBy: { id: 'asc' },
     });

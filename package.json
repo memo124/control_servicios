@@ -1,6 +1,6 @@
 {
   "name": "control_servicios",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "private": true,
   "description": "Plataforma de administración de suscripciones streaming, control financiero y notificaciones",
   "workspaces": [
@@ -12,7 +12,8 @@
     "build": "npm run build -w backend && npm run build -w frontend",
     "db:migrate": "npm run db:migrate -w backend",
     "db:seed": "npm run db:seed -w backend",
-    "db:setup": "npm run db:migrate -w backend && npm run db:seed -w backend"
+    "db:setup": "npm run db:migrate -w backend && npm run db:seed -w backend",
+    "test:security": "node scripts/security-pentest.mjs"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

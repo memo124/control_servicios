@@ -6,7 +6,10 @@ import FormField from '@/components/FormField.vue';
 import InputMoney from '@/components/InputMoney.vue';
 import { useAuthStore } from '@/stores/auth';
 import { useToast } from '@/composables/useToast';
+import { useFormDraft } from '@/composables/useFormDraft';
 import { useConfirm } from '@/composables/useConfirm';
+import { addMonthsKeepCutDay, cutDayFromIso } from '@/utils/fechaCorte';
+import { DollarSign } from 'lucide-vue-next';
 
 interface Suscripcion {
   suscripcion_id: number;
@@ -53,6 +56,20 @@ const loading = ref(true);
 const showForm = ref(false);
 const saving = ref(false);
 const editing = ref<Suscripcion | null>(null);
+const showPayment = ref(false);
+const paymentTarget = ref<Suscripcion | null>(null);
+const mesesPago = ref(1);
+const paying = ref(false);
+
+const paymentPreview = computed(() => {
+  if (!paymentTarget.value) return '';
+  return addMonthsKeepCutDay(paymentTarget.value.fecha_corte, mesesPago.value);
+});
+
+const paymentDay = computed(() => {
+  if (!paymentTarget.value) return 0;
+  return cutDayFromIso(paymentTarget.value.fecha_corte);
+});
 
 const filterPlataforma = ref('');
 const filterEstado = ref('');
@@ -67,6 +84,9 @@ const form = ref({
   aplicaGracia: false,
   diasGracia: 0,
   activo: true,
+});
+const { clear: clearDraft, restore: restoreDraft } = useFormDraft('suscripciones-form', form, {
+  enabled: () => showForm.value && !editing.value,
 });
 
 const filtered = computed(() =>
@@ -115,6 +135,7 @@ function openCreate() {
   editing.value = null;
   form.value = emptyForm();
   showForm.value = true;
+  if (restoreDraft()) toast.info('Borrador restaurado', 'Se recuperaron los datos del formulario anterior.');
 }
 
 function openEdit(s: Suscripcion) {
@@ -142,11 +163,12 @@ async function save() {
     } else {
       await api.post('/suscripciones', payload);
     }
+    clearDraft();
     showForm.value = false;
     await load();
     toast.success(isEdit ? 'Suscripción actualizada' : 'Suscripción creada');
   } catch {
-    toast.error('Error', 'No se pudo guardar la suscripción');
+    toast.error('Error', 'No se pudo guardar. El borrador se conserva para reintentar.');
   } finally {
     saving.value = false;
   }
@@ -166,6 +188,43 @@ async function remove(s: Suscripcion) {
     toast.success('Eliminada', 'Suscripción eliminada correctamente');
   } catch {
     toast.error('Error', 'No se pudo eliminar');
+  }
+}
+
+function openPayment(s: Suscripcion) {
+  paymentTarget.value = s;
+  mesesPago.value = 1;
+  showPayment.value = true;
+}
+
+async function registrarPago() {
+  if (!paymentTarget.value) return;
+  paying.value = true;
+  try {
+    const { data } = await api.post(
+      `/suscripciones/${paymentTarget.value.suscripcion_id}/registrar-pago`,
+      { meses: mesesPago.value },
+    );
+    showPayment.value = false;
+    await load();
+    toast.success(
+      'Pago registrado',
+      `${data.mesesPagados} mes(es): ${data.fechaCorteAnterior} → ${data.fechaCorteNueva}`,
+    );
+  } catch {
+    toast.error('Error', 'No se pudo registrar el pago.');
+  } finally {
+    paying.value = false;
+  }
+}
+
+async function quickPayOneMonth(s: Suscripcion) {
+  try {
+    const { data } = await api.post(`/suscripciones/${s.suscripcion_id}/registrar-pago`, { meses: 1 });
+    await load();
+    toast.success('Pago 1 mes', `${data.fechaCorteAnterior} → ${data.fechaCorteNueva}`);
+  } catch {
+    toast.error('Error', 'No se pudo registrar el pago.');
   }
 }
 
@@ -244,6 +303,15 @@ onMounted(load);
               <EstadoBadge :label="s.estado_codigo" :codigo="s.estado_codigo" :nombre="s.estado_nombre" :color-hex="s.color_hex" />
             </td>
             <td v-if="auth.hasPermission('suscripciones.editar')" class="whitespace-nowrap">
+              <button
+                type="button"
+                class="text-success text-sm font-medium mr-3 inline-flex items-center gap-1"
+                title="Registrar pago 1 mes"
+                @click="quickPayOneMonth(s)"
+              >
+                <DollarSign class="w-3.5 h-3.5" /> +1 mes
+              </button>
+              <button class="text-link text-sm font-medium mr-3" @click="openPayment(s)">Pago</button>
               <button class="text-link text-sm font-medium mr-3" @click="openEdit(s)">Editar</button>
               <button
                 v-if="auth.hasPermission('suscripciones.eliminar')"
@@ -272,7 +340,11 @@ onMounted(load);
           <div><span class="text-subtle">Cobro:</span> <span class="text-money">${{ parseFloat(s.precio_cobro).toFixed(2) }}</span></div>
           <div class="col-span-2"><span class="text-subtle">Corte:</span> {{ s.fecha_corte?.split('T')[0] }}</div>
         </div>
-        <div v-if="auth.hasPermission('suscripciones.editar')" class="flex gap-3 mt-3">
+        <div v-if="auth.hasPermission('suscripciones.editar')" class="flex flex-wrap gap-3 mt-3">
+          <button type="button" class="text-success text-sm font-medium inline-flex items-center gap-1" @click="quickPayOneMonth(s)">
+            <DollarSign class="w-3.5 h-3.5" /> +1 mes
+          </button>
+          <button type="button" class="text-link text-sm font-medium" @click="openPayment(s)">Registrar pago</button>
           <button class="text-link text-sm font-medium" @click="openEdit(s)">Editar</button>
           <button v-if="auth.hasPermission('suscripciones.eliminar')" class="text-danger text-sm" @click="remove(s)">Eliminar</button>
         </div>
@@ -330,7 +402,7 @@ onMounted(load);
 
           <FormField
             label="Fecha de corte"
-            hint="Día del mes en que vence el pago del cliente."
+            hint="El día del mes se conserva al registrar pagos (+1, +2, +3 meses). Ej: corte el 3 de cada mes."
             required
           >
             <input v-model="form.fechaCorte" class="input" type="date" required />
@@ -361,6 +433,51 @@ onMounted(load);
             <button type="button" class="btn-secondary flex-1" @click="showForm = false">Cancelar</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <div
+      v-if="showPayment && paymentTarget"
+      class="fixed inset-0 modal-overlay z-50 flex items-end sm:items-center justify-center p-4"
+      @click.self="showPayment = false"
+    >
+      <div class="card w-full max-w-md">
+        <h2 class="text-lg font-semibold mb-1">Registrar pago</h2>
+        <p class="text-sm text-themed-muted mb-4">
+          {{ paymentTarget.cliente_nombre }} · {{ paymentTarget.plataforma }}
+        </p>
+
+        <div class="space-y-4">
+          <div class="rounded-lg border border-themed p-3 text-sm space-y-1">
+            <p><span class="text-themed-muted">Corte actual:</span> {{ paymentTarget.fecha_corte?.split('T')[0] }}</p>
+            <p><span class="text-themed-muted">Día de corte fijo:</span> {{ paymentDay }} de cada mes</p>
+            <p class="font-medium text-success">
+              Nueva fecha: {{ paymentPreview }}
+            </p>
+          </div>
+
+          <FormField label="Meses pagados" hint="1 = un mes, 3 = trimestre, etc.">
+            <div class="flex flex-wrap gap-2 mb-2">
+              <button
+                v-for="n in [1, 2, 3, 6]"
+                :key="n"
+                type="button"
+                :class="['btn-secondary text-sm py-1 px-3', mesesPago === n && 'ring-2 ring-brand']"
+                @click="mesesPago = n"
+              >
+                {{ n }} {{ n === 1 ? 'mes' : 'meses' }}
+              </button>
+            </div>
+            <input v-model.number="mesesPago" class="input" type="number" min="1" max="24" />
+          </FormField>
+
+          <div class="flex gap-2 pt-2">
+            <button type="button" class="btn-primary flex-1" :disabled="paying || mesesPago < 1" @click="registrarPago">
+              {{ paying ? 'Guardando...' : 'Confirmar pago' }}
+            </button>
+            <button type="button" class="btn-secondary flex-1" @click="showPayment = false">Cancelar</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

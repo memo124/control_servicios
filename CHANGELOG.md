@@ -4,6 +4,17 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.3.0] - 2026-09-05
+
+### Added
+- Registro de pagos en suscripciones: botón **+1 mes** y modal **Registrar pago** (1–24 meses)
+- Endpoint `POST /api/suscripciones/:id/registrar-pago` con avance de fecha de corte conservando el día del mes
+- Utilidad `addMonthsKeepCutDay` (backend y frontend) con ajuste de fin de mes
+
+### Changed
+- Formulario de suscripción: hint sobre día de corte fijo al registrar pagos
+- Versión del monorepo, README, seed y SQL de changelog actualizados a 1.3.0
+
 ## [1.2.1] - 2026-09-04
 
 ### Fixed
@@ -60,6 +71,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.3.0]: https://github.com/memo124/control_servicios/releases/tag/v1.3.0
 [1.2.1]: https://github.com/memo124/control_servicios/releases/tag/v1.2.1
 [1.2.0]: https://github.com/memo124/control_servicios/releases/tag/v1.2.0
 [1.1.0]: https://github.com/memo124/control_servicios/releases/tag/v1.1.0

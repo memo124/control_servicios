@@ -5,6 +5,9 @@ import { CuentasService } from './cuentas.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../decorators/permissions.decorator';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import type { AuthUser } from '../auth/auth.service';
+import { operadorDuenoScope } from '../common/utils/operador-scope.util';
 
 @Controller('cuentas')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
@@ -13,8 +16,14 @@ export class CuentasController {
 
   @Get()
   @Permissions('cuentas.gestionar', 'finanzas.ver')
-  findAll(@Query('plataformaId') plataformaId?: string) {
-    return this.service.findAll(plataformaId ? parseInt(plataformaId, 10) : undefined);
+  findAll(
+    @CurrentUser() user: AuthUser,
+    @Query('plataformaId') plataformaId?: string,
+  ) {
+    return this.service.findAll(
+      plataformaId ? parseInt(plataformaId, 10) : undefined,
+      operadorDuenoScope(user),
+    );
   }
 
   @Get(':id')

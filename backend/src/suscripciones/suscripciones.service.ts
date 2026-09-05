@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { addMonthsKeepCutDay, formatDateOnly } from '../common/utils/fecha-corte.util';
 
 export interface SuscripcionDetalle {
   suscripcion_id: number;
@@ -108,5 +109,28 @@ export class SuscripcionesService {
 
   remove(id: number) {
     return this.prisma.suscripcionCliente.delete({ where: { id } });
+  }
+
+  async registrarPago(id: number, meses: number) {
+    const sub = await this.prisma.suscripcionCliente.findUnique({ where: { id } });
+    if (!sub) throw new NotFoundException('Suscripción no encontrada');
+
+    const fechaAnterior = sub.fechaCorte;
+    const nuevaFecha = addMonthsKeepCutDay(fechaAnterior, meses);
+
+    await this.prisma.suscripcionCliente.update({
+      where: { id },
+      data: { fechaCorte: nuevaFecha },
+    });
+
+    const detalle = await this.findOne(id);
+    return {
+      suscripcionId: id,
+      mesesPagados: meses,
+      fechaCorteAnterior: formatDateOnly(fechaAnterior),
+      fechaCorteNueva: formatDateOnly(nuevaFecha),
+      diaCorte: nuevaFecha.getDate(),
+      suscripcion: detalle,
+    };
   }
 }

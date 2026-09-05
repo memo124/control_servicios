@@ -1,8 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { NotificacionesService, EmailJobData } from './notificaciones.service';
+
+const QUEUE_TIMEOUT_MS = 5_000;
 
 @Injectable()
 export class NotificationsCronService {
@@ -16,20 +18,34 @@ export class NotificationsCronService {
   @Cron(CronExpression.EVERY_DAY_AT_6AM)
   async handleDailyNotifications() {
     this.logger.log('Iniciando job diario de notificaciones');
-    await this.notificaciones.enqueueDailyNotifications(async (data) => {
-      await this.emailQueue.add('send-email', data, {
-        attempts: 3,
-        backoff: { type: 'exponential', delay: 5000 },
-      });
-    });
+    await this.enqueueNotifications();
   }
 
   async runManually() {
-    return this.notificaciones.enqueueDailyNotifications(async (data) => {
-      await this.emailQueue.add('send-email', data, {
-        attempts: 3,
-        backoff: { type: 'exponential', delay: 5000 },
+    return this.enqueueNotifications();
+  }
+
+  private async enqueueNotifications() {
+    try {
+      return await this.notificaciones.enqueueDailyNotifications(async (data) => {
+        await this.addToQueueWithTimeout(data);
       });
+    } catch (err) {
+      this.logger.warn(`Redis no disponible (${String(err)}). Enviando correos en línea.`);
+      return this.notificaciones.enqueueDailyNotifications(async (data) => {
+        await this.notificaciones.processEmailJob(data);
+      });
+    }
+  }
+
+  private addToQueueWithTimeout(data: EmailJobData) {
+    const job = this.emailQueue.add('send-email', data, {
+      attempts: 3,
+      backoff: { type: 'exponential', delay: 5000 },
     });
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new ServiceUnavailableException('Redis no responde')), QUEUE_TIMEOUT_MS);
+    });
+    return Promise.race([job, timeout]);
   }
 }

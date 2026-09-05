@@ -31,7 +31,18 @@ export class MailService {
       this.logger.warn(`Resend no configurado. Simulando envío a ${to}`);
       return { id: 'simulated', simulated: true };
     }
-    return this.resend.emails.send({ from: this.from, to, subject, html });
+    const { data, error } = await this.resend.emails.send({
+      from: this.from,
+      to,
+      subject,
+      html,
+    });
+    if (error) {
+      this.logger.error(`Resend rechazó envío a ${to}: ${error.message}`);
+      throw new Error(error.message);
+    }
+    this.logger.log(`Correo enviado a ${to} (id: ${data?.id ?? 'n/a'})`);
+    return data;
   }
 }
 

@@ -2,6 +2,8 @@
 import { onMounted, ref } from 'vue';
 import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
+import { useFormDraft } from '@/composables/useFormDraft';
+import { useToast } from '@/composables/useToast';
 import FormField from '@/components/FormField.vue';
 
 interface Cliente {
@@ -16,6 +18,7 @@ interface Cliente {
 }
 
 const auth = useAuthStore();
+const toast = useToast();
 const items = ref<Cliente[]>([]);
 const loading = ref(true);
 const showForm = ref(false);
@@ -23,6 +26,9 @@ const editing = ref<Cliente | null>(null);
 const form = ref({
   nombre: '', email: '', telefono: '',
   deseaNotificacionesCorreo: true, aplicaDiasGracia: false, diasGraciaDefault: 0,
+});
+const { clear: clearDraft, restore: restoreDraft } = useFormDraft('clientes-form', form, {
+  enabled: () => showForm.value && !editing.value,
 });
 
 async function load() {
@@ -36,6 +42,7 @@ function openCreate() {
   editing.value = null;
   form.value = { nombre: '', email: '', telefono: '', deseaNotificacionesCorreo: true, aplicaDiasGracia: false, diasGraciaDefault: 0 };
   showForm.value = true;
+  if (restoreDraft()) toast.info('Borrador restaurado', 'Se recuperaron los datos del formulario anterior.');
 }
 
 function openEdit(c: Cliente) {
@@ -52,13 +59,18 @@ function openEdit(c: Cliente) {
 }
 
 async function save() {
-  if (editing.value) {
-    await api.patch(`/clientes/${editing.value.id}`, form.value);
-  } else {
-    await api.post('/clientes', form.value);
+  try {
+    if (editing.value) {
+      await api.patch(`/clientes/${editing.value.id}`, form.value);
+    } else {
+      await api.post('/clientes', form.value);
+    }
+    clearDraft();
+    showForm.value = false;
+    await load();
+  } catch {
+    toast.error('Error al guardar', 'Revisa tu conexión. El borrador se conserva para reintentar.');
   }
-  showForm.value = false;
-  await load();
 }
 
 async function toggleNotif(c: Cliente) {

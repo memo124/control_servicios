@@ -2,6 +2,8 @@
 import { onMounted, ref } from 'vue';
 import api from '@/services/api';
 import { useAuthStore } from '@/stores/auth';
+import { useFormDraft } from '@/composables/useFormDraft';
+import { useToast } from '@/composables/useToast';
 import FormField from '@/components/FormField.vue';
 import InputMoney from '@/components/InputMoney.vue';
 
@@ -19,6 +21,7 @@ interface Cuenta {
 interface Plataforma { id: number; nombre: string }
 
 const auth = useAuthStore();
+const toast = useToast();
 const items = ref<Cuenta[]>([]);
 const plataformas = ref<Plataforma[]>([]);
 const loading = ref(true);
@@ -31,6 +34,9 @@ const form = ref({
   duenoNombre: '',
   costoMensual: 0,
   cuposTotales: 1,
+});
+const { clear: clearDraft, restore: restoreDraft } = useFormDraft('cuentas-form', form, {
+  enabled: () => showForm.value && !editing.value,
 });
 
 function emptyForm() {
@@ -55,6 +61,7 @@ function openCreate() {
   editing.value = null;
   form.value = emptyForm();
   showForm.value = true;
+  if (restoreDraft()) toast.info('Borrador restaurado', 'Se recuperaron los datos del formulario anterior.');
 }
 
 function openEdit(c: Cuenta) {
@@ -77,8 +84,11 @@ async function save() {
     } else {
       await api.post('/cuentas', form.value);
     }
+    clearDraft();
     showForm.value = false;
     await load();
+  } catch {
+    toast.error('Error al guardar', 'Revisa tu conexión. El borrador se conserva para reintentar.');
   } finally {
     saving.value = false;
   }

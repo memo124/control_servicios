@@ -44,6 +44,8 @@ import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
       connection: {
         host: process.env.REDIS_HOST ?? '127.0.0.1',
         port: parseInt(process.env.REDIS_PORT ?? '6379', 10),
+        connectTimeout: 10_000,
+        maxRetriesPerRequest: 3,
       },
     }),
     PrismaModule,

@@ -1,31 +1,55 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import api from '@/services/api';
+import { useToast } from '@/composables/useToast';
 import EstadoBadge from '@/components/EstadoBadge.vue';
 
+const toast = useToast();
 const pendientes = ref<unknown[]>([]);
 const historial = ref<unknown[]>([]);
 const running = ref(false);
 const result = ref<{ enqueued: number } | null>(null);
 
 async function load() {
-  const [p, h] = await Promise.all([
-    api.get('/notificaciones/pendientes'),
-    api.get('/notificaciones/historial'),
-  ]);
-  pendientes.value = p.data;
-  historial.value = h.data;
+  try {
+    const [p, h] = await Promise.all([
+      api.get('/notificaciones/pendientes'),
+      api.get('/notificaciones/historial'),
+    ]);
+    pendientes.value = p.data;
+    historial.value = h.data;
+  } catch {
+    toast.error('Error al cargar', 'No se pudieron obtener las notificaciones.');
+  }
 }
 
 async function ejecutar() {
   running.value = true;
+  result.value = null;
   try {
     const { data } = await api.post('/notificaciones/ejecutar');
     result.value = data;
+    toast.success('Envío iniciado', `${data.enqueued} correo(s) encolado(s).`);
     await load();
+  } catch (e: unknown) {
+    const msg = axiosMessage(e);
+    toast.error('No se pudo ejecutar el envío', msg);
   } finally {
     running.value = false;
   }
+}
+
+function axiosMessage(e: unknown): string {
+  if (typeof e === 'object' && e !== null && 'response' in e) {
+    const res = (e as { response?: { data?: { message?: string | string[] } } }).response;
+    const m = res?.data?.message;
+    if (Array.isArray(m)) return m.join(', ');
+    if (typeof m === 'string') return m;
+  }
+  if (typeof e === 'object' && e !== null && 'message' in e) {
+    return String((e as { message: string }).message);
+  }
+  return 'Revisa que el backend y Redis estén activos.';
 }
 
 onMounted(load);
