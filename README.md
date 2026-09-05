@@ -1,4 +1,4 @@
-# Control Servicios v1.5.1
+# Control Servicios v1.5.2
 
 Plataforma full-stack para administración de suscripciones de streaming, control financiero de ganancias y envío de avisos de cobro por correo electrónico.
 
@@ -333,6 +333,16 @@ docker compose up -d redis
 
 El historial de versiones se gestiona en la tabla `system_versions` y es visible en la UI en `/version`. Los cambios detallados están en [CHANGELOG.md](CHANGELOG.md).
 
+### Backup de base de datos (v1.5.2)
+
+| Método | Descripción |
+|--------|-------------|
+| **UI** (`/version`) | Solo admin (`usuarios.gestionar`). Descarga `.sql` y avisa al grupo Telegram |
+| **CLI** | `npm run db:backup` → guarda en `backups/` (sin notificación Telegram) |
+| **API** | `GET /api/system/backup` — requiere JWT + permiso admin |
+
+El archivo incluye esquema, índices, vistas y datos (INSERT). La carpeta `backups/` está en `.gitignore`.
+
 ### Tema claro / oscuro
 
 Ver [docs/THEMES.md](docs/THEMES.md).
@@ -342,13 +352,11 @@ Ver [docs/THEMES.md](docs/THEMES.md).
 - [docs/FLOWS.md](docs/FLOWS.md) — tareas automáticas, plantillas, cómo agregar flujos
 - [docs/SECURITY.md](docs/SECURITY.md) — autenticación, permisos, pentest
 
-Tras actualizar a **v1.5.0**:
+Tras actualizar a **v1.5.2**:
 
 ```bash
 cd backend
-npx prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20260905150000_plantillas_telegram/migration.sql
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.0.sql
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.1.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.2.sql
 npm run db:seed
 ```
 
@@ -357,7 +365,16 @@ Variables Telegram en `backend/.env`:
 ```env
 TELEGRAM_BOT_TOKEN="..."
 TELEGRAM_GROUP_CHAT_ID="-5442163471"
-APP_VERSION="1.5.1"
+APP_VERSION="1.5.2"
+```
+
+Si vienes de v1.5.0 o anterior y aún no aplicaste migraciones/documentación:
+
+```bash
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.0.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.1.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.2.sql
+npm run db:seed
 ```
 
 Si vienes de v1.4.x y aún no aplicaste migraciones anteriores:

@@ -15,7 +15,8 @@ Medidas de seguridad, autenticación, autorización y buenas prácticas. Los **f
 7. [Secretos y variables de entorno](#secretos-y-variables-de-entorno)
 8. [Pruebas de penetración](#pruebas-de-penetración)
 9. [Checklist manual](#checklist-manual)
-10. [Limitaciones conocidas](#limitaciones-conocidas)
+10. [Backup de base de datos](#backup-de-base-de-datos)
+11. [Limitaciones conocidas](#limitaciones-conocidas)
 
 ---
 
@@ -240,6 +241,27 @@ Resultados esperados documentados en README (sección resumida).
 6. Admin → acceso total
 7. Telegram prueba → mensaje en grupo configurado
 8. Notificaciones manual → historial actualizado
+9. Backup desde `/version` → descarga `.sql` + aviso en Telegram
+
+---
+
+## Backup de base de datos
+
+| Control | Implementación |
+|---------|----------------|
+| **Autorización** | JWT + `PermissionsGuard` + permiso `usuarios.gestionar` |
+| **Auditoría** | Mensaje Telegram al grupo con usuario, email, fecha, archivo y tamaño |
+| **Datos expuestos** | Dump completo (usuarios hasheados, clientes, suscripciones, etc.) |
+| **Almacenamiento local CLI** | Carpeta `backups/` en `.gitignore` — no commitear |
+| **Rate limit** | Throttler global aplica al endpoint |
+
+Recomendaciones:
+
+- Rotar credenciales si un backup se filtra
+- Preferir descarga UI (con aviso) sobre compartir archivos por otros medios
+- En producción, restringir acceso de red al endpoint de backup
+
+Archivos: `system.controller.ts`, `db-backup.service.ts`, `scripts/db-backup.cjs`.
 
 ---
 
@@ -262,5 +284,6 @@ Resultados esperados documentados en README (sección resumida).
 | Throttler | `backend/src/common/guards/app-throttler.guard.ts` |
 | 2FA | `backend/src/auth/two-factor.service.ts` |
 | Telegram send | `backend/src/auth/telegram.service.ts` |
+| Backup BD | `backend/src/system/db-backup.service.ts` |
 | Pentest | `scripts/security-pentest.mjs` |
 | Resiliencia frontend | `frontend/src/services/api.ts`, `stores/network.ts` |

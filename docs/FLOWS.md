@@ -14,7 +14,8 @@ Documentación de los procesos automáticos y manuales. Usa esta guía como plan
 6. [Catálogo de plantillas](#catálogo-de-plantillas)
 7. [Flujo: registro de pago](#flujo-registro-de-pago)
 8. [Flujo: login y 2FA](#flujo-login-y-2fa-resumen)
-9. [Cómo agregar un flujo nuevo](#cómo-agregar-un-flujo-nuevo)
+9. [Flujo: backup de base de datos](#flujo-backup-de-base-de-datos)
+10. [Cómo agregar un flujo nuevo](#cómo-agregar-un-flujo-nuevo)
 
 ---
 
@@ -323,6 +324,41 @@ Alternativa: **QR entre dispositivos** (`/auth/qr/session/*`).
 
 ---
 
+## Flujo: backup de base de datos
+
+Respaldo lógico SQL (esquema + datos). Detalle de seguridad en [SECURITY.md](./SECURITY.md#backup-de-base-de-datos).
+
+```mermaid
+flowchart LR
+  ADMIN["Admin en /version"]
+  API["GET /api/system/backup"]
+  SVC["DbBackupService"]
+  PG["PostgreSQL"]
+  TG["Grupo Telegram"]
+  FILE["Archivo .sql"]
+
+  ADMIN --> API
+  API --> SVC
+  SVC --> PG
+  SVC --> FILE
+  API --> TG
+```
+
+| Aspecto | Detalle |
+|---------|---------|
+| **Disparador** | Manual — botón en `/version` o CLI |
+| **Permiso** | `usuarios.gestionar` (solo administradores) |
+| **Endpoint** | `GET /api/system/backup` |
+| **Respuesta** | `application/sql` con `Content-Disposition: attachment` |
+| **Contenido** | Enums, tablas, índices, vistas, INSERT por tabla |
+| **Notificación** | Plantilla `TELEGRAM_BACKUP_BD` al `TELEGRAM_GROUP_CHAT_ID` |
+| **Variables plantilla** | `usuario`, `email`, `fecha`, `archivo`, `tamano` |
+| **CLI** | `npm run db:backup` → `backups/<db>_<timestamp>.sql` (sin Telegram) |
+
+Archivos: `backend/src/system/db-backup.service.ts`, `system.service.ts`, `system.controller.ts`, `scripts/db-backup.cjs`.
+
+---
+
 ## Cómo agregar un flujo nuevo
 
 Plantilla para documentar e implementar:
@@ -372,3 +408,4 @@ Documentar en `.env.example` y [SECURITY.md](./SECURITY.md) si introduce secreto
 | POST | `/api/auth/telegram/test-group` | Prueba al grupo |
 | GET | `/api/plantillas` | Plantillas correo |
 | GET | `/api/plantillas-telegram` | Plantillas Telegram |
+| GET | `/api/system/backup` | Descarga backup BD (admin) |

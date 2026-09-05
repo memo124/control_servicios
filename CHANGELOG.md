@@ -4,6 +4,19 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.5.2] - 2026-09-05
+
+### Added
+- **Descarga de backup BD** para administradores: `GET /api/system/backup` (permiso `usuarios.gestionar`)
+- Botón en `/version` — genera `.sql` (esquema + datos) y notifica al grupo Telegram
+- Plantilla `TELEGRAM_BACKUP_BD` (editable en Plantillas Telegram)
+- Script CLI `npm run db:backup` → `scripts/db-backup.cjs` (guarda en `backups/`)
+- Servicio `DbBackupService` en backend
+
+### Changed
+- Documentación actualizada: [docs/FLOWS.md](docs/FLOWS.md), [docs/SECURITY.md](docs/SECURITY.md), README
+- `.gitignore` incluye `backups/` (archivos sensibles)
+
 ## [1.5.1] - 2026-09-05
 
 ### Added
@@ -116,6 +129,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.5.2]: https://github.com/memo124/control_servicios/releases/tag/v1.5.2
 [1.5.1]: https://github.com/memo124/control_servicios/releases/tag/v1.5.1
 [1.5.0]: https://github.com/memo124/control_servicios/releases/tag/v1.5.0
 [1.4.1]: https://github.com/memo124/control_servicios/releases/tag/v1.4.1

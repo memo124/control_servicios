@@ -369,6 +369,13 @@ async function main() {
       cuerpoTexto: '<i>Responde a tus clientes por WhatsApp o teléfono.</i>',
       variablesDisponibles: [],
     },
+    {
+      codigo: 'TELEGRAM_BACKUP_BD',
+      titulo: 'Aviso descarga backup BD',
+      cuerpoTexto:
+        '⚠️ <b>Backup de BD descargado</b>\n<b>Usuario:</b> {{usuario}}\n<b>Email:</b> {{email}}\n<b>Fecha:</b> {{fecha}}\n<b>Archivo:</b> {{archivo}}\n<b>Tamaño:</b> {{tamano}}',
+      variablesDisponibles: ['usuario', 'email', 'fecha', 'archivo', 'tamano'],
+    },
   ];
 
   for (const tpl of plantillasTelegram) {
@@ -396,6 +403,13 @@ async function main() {
   });
 
   const changelogEntries = [
+    {
+      version: '1.5.2',
+      titulo: 'Backup de BD descargable con aviso Telegram',
+      descripcion:
+        'GET /api/system/backup para admins. npm run db:backup. Notificación TELEGRAM_BACKUP_BD al grupo.',
+      tipo: 'minor',
+    },
     {
       version: '1.5.1',
       titulo: 'Documentación de flujos y seguridad',

@@ -16,6 +16,8 @@ const FALLBACKS: Record<string, string> = {
     '<b>🔔 Control Servicios</b>\n<b>Dueño:</b> {{dueno_nombre}}\n\nClientes que requieren que les escribas (el correo ya avisa al cliente):\n',
   TELEGRAM_ALERTAS_FOOTER:
     '<i>Responde a tus clientes por WhatsApp o teléfono.</i>',
+  TELEGRAM_BACKUP_BD:
+    '⚠️ <b>Backup de BD descargado</b>\n<b>Usuario:</b> {{usuario}}\n<b>Email:</b> {{email}}\n<b>Fecha:</b> {{fecha}}\n<b>Archivo:</b> {{archivo}}\n<b>Tamaño:</b> {{tamano}}',
 };
 
 @Injectable()
