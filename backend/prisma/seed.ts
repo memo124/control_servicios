@@ -397,6 +397,13 @@ async function main() {
 
   const changelogEntries = [
     {
+      version: '1.5.1',
+      titulo: 'Documentación de flujos y seguridad',
+      descripcion:
+        'docs/FLOWS.md: cron, correos, Telegram, plantillas, guía nuevos flujos. docs/SECURITY.md: auth, RBAC, pentest.',
+      tipo: 'patch',
+    },
+    {
       version: '1.5.0',
       titulo: 'Telegram por grupo y plantillas editables',
       descripcion:

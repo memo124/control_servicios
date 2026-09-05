@@ -4,6 +4,15 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.5.1] - 2026-09-05
+
+### Added
+- [docs/FLOWS.md](docs/FLOWS.md) — cron, correos, Telegram, plantillas, registro de pagos, guía para nuevos flujos
+- [docs/SECURITY.md](docs/SECURITY.md) — auth, RBAC, 2FA, rate limit, pentest, secretos `.env`
+
+### Changed
+- README enlaza documentación de flujos y seguridad
+
 ## [1.5.0] - 2026-09-05
 
 ### Added
@@ -107,6 +116,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.5.1]: https://github.com/memo124/control_servicios/releases/tag/v1.5.1
 [1.5.0]: https://github.com/memo124/control_servicios/releases/tag/v1.5.0
 [1.4.1]: https://github.com/memo124/control_servicios/releases/tag/v1.4.1
 [1.4.0]: https://github.com/memo124/control_servicios/releases/tag/v1.4.0

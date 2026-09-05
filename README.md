@@ -1,4 +1,4 @@
-# Control Servicios v1.5.0
+# Control Servicios v1.5.1
 
 Plataforma full-stack para administración de suscripciones de streaming, control financiero de ganancias y envío de avisos de cobro por correo electrónico.
 
@@ -109,7 +109,17 @@ Respuesta:
 
 Requiere permiso `suscripciones.editar`.
 
+## Documentación
+
+| Documento | Contenido |
+|-----------|-----------|
+| [docs/FLOWS.md](docs/FLOWS.md) | Cron 6 AM, correos, Telegram, plantillas, registro de pagos, cómo agregar flujos |
+| [docs/SECURITY.md](docs/SECURITY.md) | Auth, RBAC, 2FA, rate limit, pentest, secretos `.env` |
+| [docs/THEMES.md](docs/THEMES.md) | Tema claro/oscuro y variables CSS |
+
 ## Telegram y plantillas (v1.5.0)
+
+Resumen; detalle completo en [docs/FLOWS.md](docs/FLOWS.md#flujo-telegram-al-grupo-dueños).
 
 Los **clientes** reciben **correo** (Resend). Los **dueños** reciben resúmenes en un **grupo de Telegram** del equipo — todo centralizado en `.env`, **sin Chat ID en la base de datos**.
 
@@ -151,7 +161,7 @@ PATCH /api/users/:id                        # Editar usuario (admin)
 
 ### 2FA por Telegram
 
-Los códigos de login se publican en el **mismo grupo** (con el nombre del usuario). Alternativa recomendada: **TOTP / QR** (Google Authenticator).
+Los códigos de login se publican en el **mismo grupo** (con el nombre del usuario). Alternativa recomendada: **TOTP / QR** (Google Authenticator). Ver [docs/SECURITY.md](docs/SECURITY.md#segundo-factor-2fa).
 
 ## Resiliencia en el frontend
 
@@ -184,7 +194,9 @@ Claves de almacenamiento: `form_draft:clientes-form`, `form_draft:cuentas-form`,
 
 ## Seguridad
 
-### Medidas implementadas
+Documentación completa: **[docs/SECURITY.md](docs/SECURITY.md)** (auth, RBAC, 2FA, rate limit, pentest, `.env`).
+
+Resumen:
 
 | Capa | Protección |
 |------|------------|
@@ -206,6 +218,8 @@ Claves de almacenamiento: `form_draft:clientes-form`, `form_draft:cuentas-form`,
 | `THROTTLE_AUTH_LIMIT` | 5 | Máx. intentos de login por IP/min |
 
 Respuesta HTTP **429** con mensaje en español al superar el límite.
+
+Flujos de notificaciones (cron, correo, Telegram, plantillas): **[docs/FLOWS.md](docs/FLOWS.md)**.
 
 ### Pruebas de penetración
 
@@ -279,7 +293,7 @@ control_servicios/
 
 2. **Estados dinámicos:** Los estados (`DISPONIBLE`, `VENCE_HOY`, `EN_GRACIA`, `VENCIDA`) se resuelven exclusivamente vía tabla `estados_reglas` y la vista `v_suscripciones_detalle`. No se usa `CASE WHEN` ni lógica hardcodeada en código.
 
-3. **Notificaciones:** Job diario (6:00 AM) que consulta suscripciones en estados críticos, valida preferencias del cliente y encola envíos individuales a Resend.
+3. **Notificaciones:** Job diario (6:00 AM) — ver [docs/FLOWS.md](docs/FLOWS.md#job-diario-600-am-cron).
 
 ## API principal
 
@@ -321,7 +335,12 @@ El historial de versiones se gestiona en la tabla `system_versions` y es visible
 
 ### Tema claro / oscuro
 
-Ver [docs/THEMES.md](docs/THEMES.md) para el sistema de variables CSS, clases utilitarias y la corrección aplicada en v1.2.1.
+Ver [docs/THEMES.md](docs/THEMES.md).
+
+### Flujos y seguridad
+
+- [docs/FLOWS.md](docs/FLOWS.md) — tareas automáticas, plantillas, cómo agregar flujos
+- [docs/SECURITY.md](docs/SECURITY.md) — autenticación, permisos, pentest
 
 Tras actualizar a **v1.5.0**:
 
@@ -329,6 +348,7 @@ Tras actualizar a **v1.5.0**:
 cd backend
 npx prisma db execute --schema prisma/schema.prisma --file prisma/migrations/20260905150000_plantillas_telegram/migration.sql
 npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.0.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.1.sql
 npm run db:seed
 ```
 
@@ -337,7 +357,7 @@ Variables Telegram en `backend/.env`:
 ```env
 TELEGRAM_BOT_TOKEN="..."
 TELEGRAM_GROUP_CHAT_ID="-5442163471"
-APP_VERSION="1.5.0"
+APP_VERSION="1.5.1"
 ```
 
 Si vienes de v1.4.x y aún no aplicaste migraciones anteriores:
