@@ -8,6 +8,7 @@ import { TelegramDuenoNotifierService } from './telegram-dueno-notifier.service'
 import { PlantillasModule } from '../plantillas/plantillas.module';
 import { PlantillasTelegramModule } from '../plantillas-telegram/plantillas-telegram.module';
 import { TelegramModule } from '../telegram/telegram.module';
+import { PaymentInfoService } from '../common/payment-info.service';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TelegramModule } from '../telegram/telegram.module';
     EmailProcessor,
     NotificationsCronService,
     TelegramDuenoNotifierService,
+    PaymentInfoService,
   ],
   exports: [NotificacionesService, TelegramDuenoNotifierService],
 })

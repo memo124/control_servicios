@@ -4,6 +4,20 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.5.4] - 2026-09-23
+
+### Added
+- **Datos de pago en correos:** variables `pago_*` desde `backend/.env` (`PAYMENT_BANK_*`, `PAYMENT_PROOF_*`) inyectadas en `AVISO_PAGO_SUSCRIPCION`
+- **`PaymentInfoService`** y `GET /api/plantillas/variables-pago` (vista previa en Plantillas correo)
+- Plantilla HTML fuente: `backend/prisma/templates/aviso-pago-suscripcion.html`
+- Script **`npm run db:plantilla-correo`** → actualiza plantilla en BD sin seed completo
+- **QR real** con librería `qrcode` (login y 2FA TOTP escaneables)
+- Login QR: respuesta `authorizeUrl` usando **`FRONTEND_URL`** (teléfono en la misma red)
+
+### Changed
+- Vite `server.host: true` para acceso LAN al frontend
+- Documentación: README, FLOWS (correo + QR), SECURITY (QR y pago)
+
 ## [1.5.3] - 2026-09-23
 
 ### Fixed
@@ -139,6 +153,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.5.4]: https://github.com/memo124/control_servicios/releases/tag/v1.5.4
 [1.5.3]: https://github.com/memo124/control_servicios/releases/tag/v1.5.3
 [1.5.2]: https://github.com/memo124/control_servicios/releases/tag/v1.5.2
 [1.5.1]: https://github.com/memo124/control_servicios/releases/tag/v1.5.1

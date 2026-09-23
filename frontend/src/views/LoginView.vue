@@ -62,7 +62,9 @@ async function startQrLogin() {
     qrSessionId.value = data.sessionId;
     qrToken.value = data.token;
     const base = window.location.origin;
-    qrPayload.value = `${base}/qr-auth?session=${data.sessionId}&token=${data.token}`;
+    qrPayload.value =
+      data.authorizeUrl ??
+      `${base}/qr-auth?session=${encodeURIComponent(data.sessionId)}&token=${encodeURIComponent(data.token)}`;
     startPolling();
   } catch {
     toast.error('Error QR', 'No se pudo generar la sesión');
@@ -167,10 +169,13 @@ onUnmounted(stopPolling);
       <!-- Paso QR -->
       <div v-else-if="step === 'qr'" class="space-y-4 text-center">
         <p class="text-sm text-themed-muted">
-          Escanea con tu teléfono o abre el enlace para autorizar este equipo.
+          Escanea el QR con la cámara de tu teléfono (misma red Wi‑Fi). En el móvil inicia sesión para autorizar este equipo.
         </p>
-        <QrCanvas v-if="qrPayload" :value="qrPayload" />
-        <p class="text-xs text-themed-muted break-all">{{ qrPayload }}</p>
+        <p class="text-xs text-themed-muted">
+          Si el QR no abre, configura <code class="text-xs">FRONTEND_URL</code> en backend/.env con la IP de esta PC
+          (ej. <code class="text-xs">http://192.168.1.10:5173</code>), no uses <code class="text-xs">localhost</code>.
+        </p>
+        <QrCanvas v-if="qrPayload" :value="qrPayload" :size="280" />
         <p class="text-xs text-amber-500 animate-pulse">Esperando autorización...</p>
         <button type="button" class="btn-secondary w-full" @click="backToLogin">Cancelar</button>
       </div>

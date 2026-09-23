@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import * as fs from 'fs';
+import * as path from 'path';
 
 const prisma = new PrismaClient();
 
@@ -286,48 +288,41 @@ async function main() {
   });
 
   // ── Plantilla correo ──────────────────────────────────────────────────
-  const plantillaHtml = `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; }
-    .card { max-width: 520px; background: #ffffff; margin: 0 auto; border-radius: 8px; border: 1px solid #e1e4e8; padding: 32px; }
-    .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; color: #ffffff; background-color: {{color_hex}}; }
-    .monto { font-size: 28px; font-weight: bold; color: #1a1a1a; margin: 16px 0; }
-    .details { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .details td { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
-    .footer { font-size: 12px; color: #6c757d; text-align: center; margin-top: 24px; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <h2 style="margin: 0;">Recordatorio de Servicio</h2>
-      <span class="badge">{{estado_nombre}}</span>
-    </div>
-    <p>Hola <strong>{{cliente_nombre}}</strong>, adjuntamos el detalle del servicio contratado:</p>
-    <div class="monto">\${{precio_cobro}} USD</div>
-    <table class="details">
-      <tr><td><strong>Servicio:</strong></td><td>{{plataforma}} ({{perfil_nombre}})</td></tr>
-      <tr><td><strong>Fecha de corte:</strong></td><td>{{fecha_corte}}</td></tr>
-      <tr><td><strong>Días de gracia aplicados:</strong></td><td>{{dias_gracia}} días</td></tr>
-      <tr><td><strong>Fecha límite definitiva:</strong></td><td>{{fecha_limite_gracia}}</td></tr>
-    </table>
-    <p style="font-size: 13px; color: #444;">Si ya realizaste tu pago, ignora este mensaje.</p>
-    <div class="footer">Panel de Administración de Servicios Streaming</div>
-  </div>
-</body>
-</html>`;
+  const plantillaHtml = fs.readFileSync(
+    path.join(__dirname, 'templates', 'aviso-pago-suscripcion.html'),
+    'utf8',
+  );
+  const asuntoAvisoPago = 'Tu suscripción a {{plataforma}} — {{estado_nombre}}';
+
+  const varsAvisoPago = [
+    'cliente_nombre',
+    'plataforma',
+    'perfil_nombre',
+    'precio_cobro',
+    'fecha_corte',
+    'dias_gracia',
+    'fecha_limite_gracia',
+    'estado_nombre',
+    'color_hex',
+    'pago_banco',
+    'pago_cuenta',
+    'pago_titular',
+    'pago_correo_comprobante',
+    'pago_telefono_comprobante',
+  ];
 
   await prisma.plantillaCorreo.upsert({
     where: { codigo: 'AVISO_PAGO_SUSCRIPCION' },
-    update: {},
+    update: {
+      asunto: asuntoAvisoPago,
+      cuerpoHtml: plantillaHtml,
+      variablesDisponibles: varsAvisoPago,
+    },
     create: {
       codigo: 'AVISO_PAGO_SUSCRIPCION',
-      asunto: 'Tu suscripción a {{plataforma}} - Estado: {{estado_nombre}}',
+      asunto: asuntoAvisoPago,
       cuerpoHtml: plantillaHtml,
-      variablesDisponibles: ['cliente_nombre', 'plataforma', 'perfil_nombre', 'precio_cobro', 'fecha_corte', 'dias_gracia', 'fecha_limite_gracia', 'estado_nombre', 'color_hex'],
+      variablesDisponibles: varsAvisoPago,
     },
   });
 
@@ -403,6 +398,13 @@ async function main() {
   });
 
   const changelogEntries = [
+    {
+      version: '1.5.4',
+      titulo: 'QR escaneable, datos de pago en correos y login móvil',
+      descripcion:
+        'QR real con qrcode. Variables pago_* en avisos. authorizeUrl con FRONTEND_URL. npm run db:plantilla-correo.',
+      tipo: 'patch',
+    },
     {
       version: '1.5.3',
       titulo: 'Rate limit y restore de backup',

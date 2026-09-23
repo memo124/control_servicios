@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; color: #1a1a1a; }
+    .card { max-width: 520px; background: #ffffff; margin: 0 auto; border-radius: 10px; border: 1px solid #e1e4e8; padding: 28px 32px; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; color: #ffffff; background-color: {{color_hex}}; }
+    .monto { font-size: 28px; font-weight: bold; margin: 16px 0; }
+    .details { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    .details td { padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; vertical-align: top; }
+    .details td:first-child { width: 42%; color: #555; }
+    .pago-box { margin-top: 24px; padding: 18px; background: #eff6ff; border-radius: 8px; border: 1px solid #bfdbfe; }
+    .pago-box h3 { margin: 0 0 12px; font-size: 16px; color: #1e40af; }
+    .cuenta { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; color: #0f172a; }
+    .comprobante { margin-top: 14px; font-size: 14px; line-height: 1.6; color: #334155; }
+    .footer { font-size: 12px; color: #6c757d; text-align: center; margin-top: 28px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+      <h2 style="margin: 0; font-size: 20px;">Recordatorio de pago</h2>
+      <span class="badge">{{estado_nombre}}</span>
+    </div>
+    <p style="font-size: 15px; line-height: 1.5;">Hola <strong>{{cliente_nombre}}</strong>,</p>
+    <p style="font-size: 14px; color: #444; margin-top: 0;">Te recordamos el estado de tu suscripción y cómo realizar el pago:</p>
+    <div class="monto">${{precio_cobro}} USD</div>
+    <table class="details">
+      <tr><td><strong>Servicio</strong></td><td>{{plataforma}} — {{perfil_nombre}}</td></tr>
+      <tr><td><strong>Fecha de corte</strong></td><td>{{fecha_corte}}</td></tr>
+      <tr><td><strong>Días de gracia</strong></td><td>{{dias_gracia}} días</td></tr>
+      <tr><td><strong>Fecha límite</strong></td><td>{{fecha_limite_gracia}}</td></tr>
+    </table>
+    <div class="pago-box">
+      <h3>Depositar en</h3>
+      <table class="details">
+        <tr><td><strong>Banco</strong></td><td>{{pago_banco}}</td></tr>
+        <tr><td><strong>No. de cuenta</strong></td><td class="cuenta">{{pago_cuenta}}</td></tr>
+        <tr><td><strong>A nombre de</strong></td><td>{{pago_titular}}</td></tr>
+      </table>
+      <div class="comprobante">
+        <strong>Enviar comprobante de pago:</strong><br>
+        📧 Correo: <a href="mailto:{{pago_correo_comprobante}}">{{pago_correo_comprobante}}</a><br>
+        📱 Teléfono / WhatsApp: {{pago_telefono_comprobante}}
+      </div>
+    </div>
+    <p style="font-size: 13px; color: #64748b; margin-top: 20px;">Si ya pagaste, envía tu comprobante o ignora este mensaje.</p>
+    <div class="footer">Control Servicios — Administración de suscripciones</div>
+  </div>
+</body>
+</html>

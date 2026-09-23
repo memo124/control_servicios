@@ -158,7 +158,7 @@ Consultas previas:
 3. Filtrar emails válidos (regex básico)
 
 4. Por cada suscripción:
-   a. buildVariables() → objeto con 9 variables
+   a. buildVariables() → datos del cliente + variables `pago_*` desde `.env` (`PaymentInfoService`)
    b. replaceVars(asunto) y replaceVars(cuerpoHtml)
    c. Encolar { suscripcionId, email, asunto, html }
 
@@ -189,6 +189,21 @@ Consultas previas:
 | `fecha_limite_gracia` | vista calculada |
 | `estado_nombre` | estado dinámico |
 | `color_hex` | badge del estado |
+| `pago_banco` | `PAYMENT_BANK_NAME` (.env) |
+| `pago_cuenta` | `PAYMENT_BANK_ACCOUNT` |
+| `pago_titular` | `PAYMENT_ACCOUNT_HOLDER` |
+| `pago_correo_comprobante` | `PAYMENT_PROOF_EMAIL` |
+| `pago_telefono_comprobante` | `PAYMENT_PROOF_PHONE` |
+
+### Plantilla HTML (v1.5.4+)
+
+| Recurso | Descripción |
+|---------|-------------|
+| Archivo fuente | `backend/prisma/templates/aviso-pago-suscripcion.html` |
+| Sincronizar BD | `npm run db:plantilla-correo` |
+| API preview vars | `GET /api/plantillas/variables-pago` |
+
+El seed también lee el mismo archivo HTML al ejecutar `npm run db:seed`.
 
 ### Configuración `.env`
 
@@ -196,6 +211,12 @@ Consultas previas:
 RESEND_API_KEY="re_..."
 MAIL_FROM_ADDRESS="Control Servicios <onboarding@resend.dev>"  # pruebas
 # MAIL_FROM_ADDRESS="Notificaciones <notificaciones@tudominio.com>"  # producción
+
+PAYMENT_BANK_NAME="Banco Industrial"
+PAYMENT_BANK_ACCOUNT="1234567890"
+PAYMENT_ACCOUNT_HOLDER="Titular"
+PAYMENT_PROOF_EMAIL="pagos@tudominio.com"
+PAYMENT_PROOF_PHONE="+502 1234-5678"
 ```
 
 Si `RESEND_API_KEY` no está configurado → envío **simulado** (log, sin API).
@@ -321,6 +342,34 @@ POST /auth/login
 ```
 
 Alternativa: **QR entre dispositivos** (`/auth/qr/session/*`).
+
+### Login QR (v1.5.4+) — autorizar desde el teléfono
+
+```mermaid
+sequenceDiagram
+  participant PC as PC (navegador)
+  participant API as Backend
+  participant Tel as Teléfono
+
+  PC->>API: POST /auth/qr/session
+  API-->>PC: sessionId, token, authorizeUrl
+  PC->>PC: Muestra QR (authorizeUrl)
+  Tel->>Tel: Escanea QR → /qr-auth?session&token
+  Tel->>API: POST /auth/qr/session/:id/authorize
+  loop cada 2s
+    PC->>API: POST /auth/qr/session/:id/poll
+  end
+  API-->>PC: completed + JWT
+```
+
+| Paso | Detalle |
+|------|---------|
+| QR escaneable | Librería `qrcode` en `QrCanvas.vue` (no generador decorativo) |
+| URL del QR | `authorizeUrl` = `FRONTEND_URL` + `/qr-auth?session=…&token=…` |
+| **FRONTEND_URL** | Debe ser IP LAN accesible desde el móvil (no `localhost`) |
+| Vite | `server.host: true` — usar URL Network del dev server |
+| Expiración | Sesión QR ~5 min (`qr_login_sessions`) |
+| 2FA TOTP QR | Seguridad → Generar QR (`otpauth://` escaneable por Authenticator) |
 
 ---
 

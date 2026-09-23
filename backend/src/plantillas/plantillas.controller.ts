@@ -3,16 +3,26 @@ import { PlantillasService } from './plantillas.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../decorators/permissions.decorator';
+import { PaymentInfoService } from '../common/payment-info.service';
 
 @Controller('plantillas')
 @UseGuards(JwtAuthGuard, PermissionsGuard)
 export class PlantillasController {
-  constructor(private service: PlantillasService) {}
+  constructor(
+    private service: PlantillasService,
+    private paymentInfo: PaymentInfoService,
+  ) {}
 
   @Get()
   @Permissions('plantillas.editar', 'correos.enviar')
   findAll() {
     return this.service.findAll();
+  }
+
+  @Get('variables-pago')
+  @Permissions('plantillas.editar', 'correos.enviar')
+  paymentVariables() {
+    return this.paymentInfo.getTemplateVariables();
   }
 
   @Get(':id')

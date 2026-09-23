@@ -46,11 +46,13 @@ Archivos: `auth.service.ts`, `jwt.strategy.ts`, `auth.controller.ts`.
 
 Flujo para autorizar otro dispositivo:
 
-1. `POST /api/auth/qr/session` → `sessionId`, `token`
-2. Dispositivo móvil escanea URL → `POST /api/auth/qr/session/:id/authorize`
-3. Origen hace polling → `POST /api/auth/qr/session/:id/poll`
+1. `POST /api/auth/qr/session` → `sessionId`, `token`, `authorizeUrl` (desde `FRONTEND_URL`)
+2. Dispositivo móvil escanea URL → `POST /api/auth/qr/session/:id/authorize` (email + password)
+3. Origen hace polling → `POST /api/auth/qr/session/:id/poll` → JWT
 
 Throttling estricto en authorize (5 intentos/min).
+
+**Seguridad operativa:** configurar `FRONTEND_URL` con HTTPS en producción; el token QR es de un solo uso y expira en ~5 minutos. No compartir capturas del QR en canales públicos.
 
 ---
 
@@ -199,6 +201,8 @@ No se persisten chat IDs por usuario (columnas legacy en schema sin uso en flujo
 | `TELEGRAM_BOT_TOKEN` | **Sí** | Bot API |
 | `TELEGRAM_GROUP_CHAT_ID` | No (Id de grupo) | Destino mensajes |
 | `MAIL_FROM_ADDRESS` | No | Remitente Resend |
+| `PAYMENT_*` | No | Datos bancarios en correos (no son credenciales) |
+| `FRONTEND_URL` | No | Base pública del SPA (QR login; usar HTTPS en prod) |
 | `REDIS_*` | Depende | Cola BullMQ |
 
 **Nunca** commitear `backend/.env`. Rotar token de Telegram si se expone (@BotFather → revoke).

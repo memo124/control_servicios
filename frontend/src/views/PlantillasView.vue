@@ -19,7 +19,7 @@ const previewHtml = ref('');
 const previewAsunto = ref('');
 const saving = ref(false);
 
-const sampleVars: Record<string, string> = {
+const sampleVars = ref<Record<string, string>>({
   cliente_nombre: 'Melissa',
   plataforma: 'Spotify',
   perfil_nombre: 'Melissa',
@@ -29,12 +29,21 @@ const sampleVars: Record<string, string> = {
   fecha_limite_gracia: '2026-05-07',
   estado_nombre: 'Vence Hoy',
   color_hex: '#ffc107',
-};
+  pago_banco: '…',
+  pago_cuenta: '…',
+  pago_titular: '…',
+  pago_correo_comprobante: '…',
+  pago_telefono_comprobante: '…',
+});
 
 async function load() {
-  const { data } = await api.get('/plantillas');
-  plantillas.value = data;
-  if (data.length) selectPlantilla(data[0]);
+  const [plantillasRes, pagoRes] = await Promise.all([
+    api.get('/plantillas'),
+    api.get('/plantillas/variables-pago').catch(() => ({ data: {} })),
+  ]);
+  plantillas.value = plantillasRes.data;
+  sampleVars.value = { ...sampleVars.value, ...pagoRes.data };
+  if (plantillasRes.data.length) selectPlantilla(plantillasRes.data[0]);
 }
 
 function selectPlantilla(p: Plantilla) {
@@ -47,7 +56,7 @@ function selectPlantilla(p: Plantilla) {
 function updatePreview() {
   let html = cuerpoHtml.value;
   let subj = asunto.value;
-  for (const [k, v] of Object.entries(sampleVars)) {
+  for (const [k, v] of Object.entries(sampleVars.value)) {
     html = html.split(`{{${k}}}`).join(v);
     subj = subj.split(`{{${k}}}`).join(v);
   }
@@ -87,8 +96,12 @@ onMounted(load);
           <textarea v-model="cuerpoHtml" class="input mt-1 font-mono text-xs h-64" />
         </div>
 
-        <div class="text-xs text-themed-muted">
-          Variables: {{ selected?.variablesDisponibles?.join(', ') }}
+        <div class="text-xs text-themed-muted space-y-1">
+          <p>Variables: {{ selected?.variablesDisponibles?.join(', ') }}</p>
+          <p>
+            Las variables <code class="text-xs">pago_*</code> se leen de
+            <code class="text-xs">backend/.env</code> (banco, cuenta, correo y teléfono para comprobantes).
+          </p>
         </div>
 
         <button class="btn-primary" :disabled="saving" @click="save">{{ saving ? 'Guardando...' : 'Guardar plantilla' }}</button>

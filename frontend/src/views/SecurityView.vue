@@ -219,7 +219,7 @@ onMounted(loadStatus);
           Generar QR de configuración
         </button>
         <template v-if="totpSetup">
-          <QrCanvas :value="totpSetup.otpauthUrl" :size="200" />
+          <QrCanvas :value="totpSetup.otpauthUrl" :size="260" />
           <p class="text-xs text-themed-muted break-all">Secreto manual: {{ totpSetup.secret }}</p>
           <FormField label="Código de verificación">
             <input v-model="totpCode" class="input text-center tracking-widest" maxlength="6" placeholder="000000" />

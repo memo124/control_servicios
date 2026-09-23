@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { TwoFactorService } from './two-factor.service';
 import { AlertasDuenoService } from './alertas-dueno.service';
@@ -30,6 +31,7 @@ export class AuthController {
     private twoFactor: TwoFactorService,
     private alertasDueno: AlertasDuenoService,
     private qrLogin: QrLoginService,
+    private config: ConfigService,
   ) {}
 
   @Post('login')
@@ -118,8 +120,13 @@ export class AuthController {
   }
 
   @Post('qr/session')
-  createQrSession() {
-    return this.qrLogin.createSession();
+  async createQrSession() {
+    const session = await this.qrLogin.createSession();
+    const base = this.config.get<string>('FRONTEND_URL')?.replace(/\/$/, '');
+    const authorizeUrl = base
+      ? `${base}/qr-auth?session=${encodeURIComponent(session.sessionId)}&token=${encodeURIComponent(session.token)}`
+      : undefined;
+    return { ...session, authorizeUrl };
   }
 
   @Post('qr/session/:id/authorize')

@@ -1,4 +1,4 @@
-# Control Servicios v1.5.3
+# Control Servicios v1.5.4
 
 Plataforma full-stack para administración de suscripciones de streaming, control financiero de ganancias y envío de avisos de cobro por correo electrónico.
 
@@ -333,6 +333,48 @@ docker compose up -d redis
 
 El historial de versiones se gestiona en la tabla `system_versions` y es visible en la UI en `/version`. Los cambios detallados están en [CHANGELOG.md](CHANGELOG.md).
 
+### Datos de pago en correos (v1.5.4)
+
+Configura en `backend/.env` (no van en la BD; se inyectan al enviar):
+
+```env
+PAYMENT_BANK_NAME="Banco Industrial"
+PAYMENT_BANK_ACCOUNT="1234567890"
+PAYMENT_ACCOUNT_HOLDER="Titular de la cuenta"
+PAYMENT_PROOF_EMAIL="pagos@tudominio.com"
+PAYMENT_PROOF_PHONE="+502 1234-5678"
+```
+
+Variables en plantilla `AVISO_PAGO_SUSCRIPCION`: `{{pago_banco}}`, `{{pago_cuenta}}`, `{{pago_titular}}`, `{{pago_correo_comprobante}}`, `{{pago_telefono_comprobante}}`.
+
+| Acción | Comando / UI |
+|--------|----------------|
+| Editar diseño HTML | `backend/prisma/templates/aviso-pago-suscripcion.html` |
+| Publicar en BD | `npm run db:plantilla-correo` |
+| Vista previa | `/plantillas` (admin) |
+
+### Login con QR desde el teléfono (v1.5.4)
+
+1. PC: Login → **Ingresar con QR**
+2. Móvil (misma Wi‑Fi): escanear QR → email/contraseña → **Autorizar**
+3. La PC recibe la sesión automáticamente
+
+En `backend/.env` usa la **IP LAN** de la PC (no `localhost`):
+
+```env
+FRONTEND_URL="http://192.168.1.10:5173"
+```
+
+Vite expone la red (`host: true`); revisa la URL **Network** al ejecutar `npm run dev`.
+
+### Scripts de mantenimiento
+
+| Script | Descripción |
+|--------|-------------|
+| `npm run db:backup` | Backup SQL local en `backups/` |
+| `npm run db:plantilla-correo` | Sincroniza plantilla de aviso de pago desde HTML |
+| `npm run test:security` | Pentest básico de la API |
+
 ### Backup de base de datos (v1.5.2)
 
 | Método | Descripción |
@@ -352,28 +394,33 @@ Ver [docs/THEMES.md](docs/THEMES.md).
 - [docs/FLOWS.md](docs/FLOWS.md) — tareas automáticas, plantillas, cómo agregar flujos
 - [docs/SECURITY.md](docs/SECURITY.md) — autenticación, permisos, pentest
 
-Tras actualizar a **v1.5.3**:
+Tras actualizar a **v1.5.4**:
 
 ```bash
 cd backend
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.3.sql
-npm run db:seed
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.4.sql
+npm run db:plantilla-correo
+# opcional: npm run db:seed
 ```
 
-Variables Telegram en `backend/.env`:
+Variables clave en `backend/.env`:
 
 ```env
 TELEGRAM_BOT_TOKEN="..."
 TELEGRAM_GROUP_CHAT_ID="-5442163471"
-APP_VERSION="1.5.3"
+FRONTEND_URL="http://192.168.x.x:5173"
+PAYMENT_BANK_NAME="..."
+PAYMENT_BANK_ACCOUNT="..."
+PAYMENT_PROOF_EMAIL="..."
+PAYMENT_PROOF_PHONE="..."
+APP_VERSION="1.5.4"
 ```
 
-Si vienes de v1.5.2 o anterior:
+Si vienes de v1.5.3:
 
 ```bash
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.2.sql
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.3.sql
-npm run db:seed
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.4.sql
+npm run db:plantilla-correo
 ```
 
 Si vienes de v1.4.x y aún no aplicaste migraciones anteriores:

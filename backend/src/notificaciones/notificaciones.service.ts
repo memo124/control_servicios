@@ -3,6 +3,7 @@ import { Resend } from 'resend';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { PlantillasService } from '../plantillas/plantillas.service';
+import { PaymentInfoService } from '../common/payment-info.service';
 import type { SuscripcionDetalle } from '../suscripciones/suscripciones.service';
 
 export interface EmailJobData {
@@ -54,6 +55,7 @@ export class NotificacionesService {
     private prisma: PrismaService,
     private plantillas: PlantillasService,
     private mail: MailService,
+    private paymentInfo: PaymentInfoService,
   ) {}
 
   private formatDate(d: Date | string): string {
@@ -63,6 +65,7 @@ export class NotificacionesService {
 
   buildVariables(sub: SuscripcionDetalle): Record<string, string> {
     return {
+      ...this.paymentInfo.getTemplateVariables(),
       cliente_nombre: sub.cliente_nombre,
       plataforma: sub.plataforma,
       perfil_nombre: sub.perfil_nombre ?? '',
