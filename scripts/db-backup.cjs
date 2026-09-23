@@ -63,6 +63,99 @@ async function getTables(prisma) {
   return rows.map((r) => r.tablename);
 }
 
+async function getTableDependencyMap(prisma) {
+  const rows = await prisma.$queryRaw`
+    SELECT
+      tc.table_name AS child_table,
+      ccu.table_name AS parent_table
+    FROM information_schema.table_constraints AS tc
+    JOIN information_schema.key_column_usage AS kcu
+      ON tc.constraint_name = kcu.constraint_name
+      AND tc.table_schema = kcu.table_schema
+    JOIN information_schema.constraint_column_usage AS ccu
+      ON ccu.constraint_name = tc.constraint_name
+      AND ccu.table_schema = tc.table_schema
+    WHERE tc.constraint_type = 'FOREIGN KEY'
+      AND tc.table_schema = 'public'
+  `;
+  const map = new Map();
+  for (const row of rows) {
+    if (row.parent_table === row.child_table) continue;
+    const list = map.get(row.child_table) ?? [];
+    if (!list.includes(row.parent_table)) list.push(row.parent_table);
+    map.set(row.child_table, list);
+  }
+  return map;
+}
+
+function sortTablesByForeignKeys(tables, deps) {
+  const tableSet = new Set(tables);
+  const sorted = [];
+  const visited = new Set();
+  const visit = (table, stack) => {
+    if (visited.has(table)) return;
+    if (stack.has(table)) return;
+    stack.add(table);
+    for (const parent of deps.get(table) ?? []) {
+      if (tableSet.has(parent)) visit(parent, stack);
+    }
+    stack.delete(table);
+    visited.add(table);
+    sorted.push(table);
+  };
+  for (const table of tables) visit(table, new Set());
+  return sorted;
+}
+
+async function getTableConstraints(prisma) {
+  return prisma.$queryRaw`
+    SELECT
+      c.relname AS table_name,
+      con.conname AS constraint_name,
+      pg_get_constraintdef(con.oid) AS definition,
+      con.contype::text AS contype
+    FROM pg_constraint con
+    JOIN pg_class c ON c.oid = con.conrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND con.contype IN ('p', 'f')
+    ORDER BY CASE con.contype WHEN 'p' THEN 0 WHEN 'f' THEN 1 ELSE 2 END, c.relname, con.conname
+  `;
+}
+
+async function writeConstraints(prisma, write) {
+  const constraints = await getTableConstraints(prisma);
+  if (!constraints.length) return;
+  write('-- Restricciones PK / FK\n');
+  for (const c of constraints) {
+    const table = c.table_name.replace(/"/g, '""');
+    const cname = c.constraint_name.replace(/"/g, '""');
+    write(
+      `DO $$ BEGIN ALTER TABLE ONLY public."${table}" ADD CONSTRAINT "${cname}" ${c.definition}; EXCEPTION WHEN duplicate_object THEN NULL; END $$;\n`,
+    );
+  }
+  write('\n');
+}
+
+async function writeSequenceResets(prisma, write) {
+  const rows = await prisma.$queryRaw`
+    SELECT table_name, column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND column_default LIKE 'nextval%'
+  `;
+  if (!rows.length) return;
+  write('-- Secuencias\n');
+  for (const row of rows) {
+    const col = row.column_name.replace(/"/g, '""');
+    const tbl = row.table_name.replace(/"/g, '""');
+    write(
+      `SELECT setval(pg_get_serial_sequence('public.${tbl}', '${col}'), COALESCE((SELECT MAX("${col}") FROM public."${tbl}"), 1), true);\n`,
+    );
+  }
+  write('\n');
+}
+
 async function getViews(prisma) {
   return prisma.$queryRaw`
     SELECT viewname, definition
@@ -176,7 +269,8 @@ async function main() {
   write('-- Backup Control Servicios\n');
   write(`-- Base de datos: ${dbName}\n`);
   write(`-- Generado: ${new Date().toISOString()}\n`);
-  write('-- Restaurar: psql -h HOST -U USER -d DB -f archivo.sql\n\n');
+  write('-- Restaurar (BD vacía o schema public limpio):\n');
+  write('--   psql -h HOST -U USER -d DB -f archivo.sql\n\n');
   write('BEGIN;\n');
   write('SET session_replication_role = replica;\n\n');
 
@@ -192,11 +286,21 @@ async function main() {
     if (enums.length) write('\n');
 
     const tables = await getTables(prisma);
+    const deps = await getTableDependencyMap(prisma);
+    const tablesForData = sortTablesByForeignKeys(tables, deps);
+
     write('-- Tablas\n');
     for (const table of tables) {
       const ddl = await getTableDdl(prisma, table);
       if (ddl) write(`${ddl}\n\n`);
     }
+
+    write('-- Datos (orden por dependencias FK)\n');
+    for (const table of tablesForData) {
+      await dumpTableData(prisma, table, write);
+    }
+
+    await writeConstraints(prisma, write);
 
     write('-- Índices\n');
     for (const table of tables) {
@@ -213,12 +317,9 @@ async function main() {
       }
     }
 
-    write('-- Datos\n');
-    for (const table of tables) {
-      await dumpTableData(prisma, table, write);
-    }
+    await writeSequenceResets(prisma, write);
 
-    write('\nSET session_replication_role = DEFAULT;\n');
+    write('SET session_replication_role = DEFAULT;\n');
     write('COMMIT;\n');
 
     fs.writeFileSync(outFile, chunks.join(''), 'utf8');

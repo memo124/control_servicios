@@ -139,9 +139,9 @@ Implementado con `@nestjs/throttler` y `AppThrottlerGuard` global.
 | `THROTTLE_TTL_MS` | 60000 | Ventana global |
 | `THROTTLE_LIMIT` | 100 | Máx. requests/IP/ventana |
 | `THROTTLE_AUTH_TTL_MS` | 60000 | Ventana login |
-| `THROTTLE_AUTH_LIMIT` | 5 | Máx. logins/IP/min |
+| `THROTTLE_AUTH_LIMIT` | 5 | Máx. logins/IP/min (solo rutas con `@Throttle({ auth })`) |
 
-Respuesta: **429** con mensaje en español.
+Respuesta: **429** con mensaje en español. Tras ~5 peticiones **cualquier** endpoint ya no debía bloquearse: el throttler `auth` se aplicaba a toda la API; `AppThrottlerGuard` limita `auth` a login/2FA/QR.
 
 Login y 2FA usan perfil `@Throttle({ auth: ... })` más estricto.
 

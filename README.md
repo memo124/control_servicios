@@ -1,4 +1,4 @@
-# Control Servicios v1.5.2
+# Control Servicios v1.5.3
 
 Plataforma full-stack para administración de suscripciones de streaming, control financiero de ganancias y envío de avisos de cobro por correo electrónico.
 
@@ -352,11 +352,11 @@ Ver [docs/THEMES.md](docs/THEMES.md).
 - [docs/FLOWS.md](docs/FLOWS.md) — tareas automáticas, plantillas, cómo agregar flujos
 - [docs/SECURITY.md](docs/SECURITY.md) — autenticación, permisos, pentest
 
-Tras actualizar a **v1.5.2**:
+Tras actualizar a **v1.5.3**:
 
 ```bash
 cd backend
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.2.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.3.sql
 npm run db:seed
 ```
 
@@ -365,15 +365,14 @@ Variables Telegram en `backend/.env`:
 ```env
 TELEGRAM_BOT_TOKEN="..."
 TELEGRAM_GROUP_CHAT_ID="-5442163471"
-APP_VERSION="1.5.2"
+APP_VERSION="1.5.3"
 ```
 
-Si vienes de v1.5.0 o anterior y aún no aplicaste migraciones/documentación:
+Si vienes de v1.5.2 o anterior:
 
 ```bash
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.0.sql
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.1.sql
 npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.2.sql
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.3.sql
 npm run db:seed
 ```
 

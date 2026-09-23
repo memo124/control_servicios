@@ -22,6 +22,7 @@ function shouldRetry(err: AxiosError, config: RetryConfig): boolean {
   const method = (config.method ?? 'get').toLowerCase();
   const count = config.__retryCount ?? 0;
   if (count >= MAX_RETRIES) return false;
+  if (err.response?.status === 429) return false;
   if (isNetworkError(err)) return true;
   if (err.response && RETRYABLE_STATUSES.has(err.response.status)) {
     return RETRYABLE_METHODS.has(method) || method === 'post';

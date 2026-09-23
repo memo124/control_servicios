@@ -404,6 +404,13 @@ async function main() {
 
   const changelogEntries = [
     {
+      version: '1.5.3',
+      titulo: 'Rate limit y restore de backup',
+      descripcion:
+        'Throttler auth solo en login/2FA. Backup SQL con orden FK, PK/FK tras datos y secuencias.',
+      tipo: 'patch',
+    },
+    {
       version: '1.5.2',
       titulo: 'Backup de BD descargable con aviso Telegram',
       descripcion:

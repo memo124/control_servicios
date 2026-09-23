@@ -350,7 +350,8 @@ flowchart LR
 | **Permiso** | `usuarios.gestionar` (solo administradores) |
 | **Endpoint** | `GET /api/system/backup` |
 | **Respuesta** | `application/sql` con `Content-Disposition: attachment` |
-| **Contenido** | Enums, tablas, índices, vistas, INSERT por tabla |
+| **Contenido** | Enums → tablas (sin FK) → **datos (padres antes que hijos)** → PK/FK → índices → vistas → secuencias |
+| **Restaurar** | Preferible BD vacía (`public` limpio). No mezclar con migraciones Prisma y luego INSERT alfabético — generaba errores FK |
 | **Notificación** | Plantilla `TELEGRAM_BACKUP_BD` al `TELEGRAM_GROUP_CHAT_ID` |
 | **Variables plantilla** | `usuario`, `email`, `fecha`, `archivo`, `tamano` |
 | **CLI** | `npm run db:backup` → `backups/<db>_<timestamp>.sql` (sin Telegram) |

@@ -4,6 +4,16 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.5.3] - 2026-09-23
+
+### Fixed
+- **Rate limit:** el throttler `auth` (5/min) ya no aplica a toda la API; solo rutas con `@Throttle({ auth })` (`AppThrottlerGuard`)
+- **Frontend:** no reintenta peticiones con HTTP 429
+- **Backup/restore:** INSERT en orden de dependencias FK; PK/FK después de datos; índices, vistas y reset de secuencias al final
+
+### Changed
+- Documentación en `docs/FLOWS.md` y `docs/SECURITY.md` sobre restore y throttling
+
 ## [1.5.2] - 2026-09-05
 
 ### Added
@@ -129,6 +139,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.5.3]: https://github.com/memo124/control_servicios/releases/tag/v1.5.3
 [1.5.2]: https://github.com/memo124/control_servicios/releases/tag/v1.5.2
 [1.5.1]: https://github.com/memo124/control_servicios/releases/tag/v1.5.1
 [1.5.0]: https://github.com/memo124/control_servicios/releases/tag/v1.5.0
