@@ -18,6 +18,7 @@ import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { SystemModule } from './system/system.module';
 import { EstadosModule } from './estados/estados.module';
 import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
+import { MailModule } from './common/mail.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { AppThrottlerGuard } from './common/guards/app-throttler.guard';
         maxRetriesPerRequest: 3,
       },
     }),
+    MailModule,
     PrismaModule,
     AuthModule,
     UsersModule,

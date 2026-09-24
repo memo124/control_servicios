@@ -197,7 +197,9 @@ No se persisten chat IDs por usuario (columnas legacy en schema sin uso en flujo
 |----------|---------|-----|
 | `DATABASE_URL` | Sí | PostgreSQL |
 | `JWT_SECRET` | **Sí** | Firmar tokens |
-| `RESEND_API_KEY` | **Sí** | Envío correo |
+| `RESEND_API_KEY` | **Sí** | Envío correo (Resend) |
+| `SMTP_PASS` | **Sí** | Contraseña SMTP (p. ej. app password Gmail) |
+| `MAIL_PROVIDER` | No | `resend` (default) o `smtp` |
 | `TELEGRAM_BOT_TOKEN` | **Sí** | Bot API |
 | `TELEGRAM_GROUP_CHAT_ID` | No (Id de grupo) | Destino mensajes |
 | `MAIL_FROM_ADDRESS` | No | Remitente Resend |

@@ -1,6 +1,6 @@
 {
   "name": "control_servicios",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "private": true,
   "description": "Plataforma de administración de suscripciones streaming, control financiero y notificaciones",
   "workspaces": [

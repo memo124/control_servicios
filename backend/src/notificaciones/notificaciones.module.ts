@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
-import { NotificacionesService, MailService } from './notificaciones.service';
+import { NotificacionesService } from './notificaciones.service';
 import { NotificacionesController } from './notificaciones.controller';
 import { EmailProcessor } from './email.processor';
 import { NotificationsCronService } from './notifications-cron.service';
@@ -20,7 +20,6 @@ import { PaymentInfoService } from '../common/payment-info.service';
   controllers: [NotificacionesController],
   providers: [
     NotificacionesService,
-    MailService,
     EmailProcessor,
     NotificationsCronService,
     TelegramDuenoNotifierService,

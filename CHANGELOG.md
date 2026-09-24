@@ -4,6 +4,22 @@ Todos los cambios notables de este proyecto se documentan en este archivo.
 
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 
+## [1.5.5] - 2026-09-23
+
+### Added
+- **Correo SMTP** (`MAIL_PROVIDER=smtp`): envío a clientes vía Gmail u otro SMTP (`nodemailer`)
+- **`MailService`** centralizado con estado de entrega y detección de modo prueba Resend (`onboarding@resend.dev`)
+- `GET /api/notificaciones/mail-status` — capacidad de envío (sandbox vs producción)
+- `GET /api/notificaciones/telegram-duenos/estado-duenos` — dueños con clientes pendientes y alertas activas/inactivas
+
+### Fixed
+- **Historial correos:** consulta sin `include` de suscripción borrada (evita error 500 en Notificaciones)
+- Bloqueo previo al encolar si Resend está en modo prueba y hay clientes pendientes
+
+### Changed
+- UI **Notificaciones:** avisos Resend/SMTP, columna detalle en historial, guía Telegram dueños
+- Documentación: README, FLOWS (SMTP/Resend), `.env.example`
+
 ## [1.5.4] - 2026-09-23
 
 ### Added
@@ -153,6 +169,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/).
 - Edición de costo mensual en cuentas con etiquetas y ayuda contextual
 - Vista SQL `v_suscripciones_detalle` incluye `cuenta_id`
 
+[1.5.5]: https://github.com/memo124/control_servicios/releases/tag/v1.5.5
 [1.5.4]: https://github.com/memo124/control_servicios/releases/tag/v1.5.4
 [1.5.3]: https://github.com/memo124/control_servicios/releases/tag/v1.5.3
 [1.5.2]: https://github.com/memo124/control_servicios/releases/tag/v1.5.2

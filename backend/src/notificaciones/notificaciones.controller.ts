@@ -1,4 +1,5 @@
 import { Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { MailService } from '../common/mail.service';
 import { NotificacionesService } from './notificaciones.service';
 import { NotificationsCronService } from './notifications-cron.service';
 import { TelegramDuenoNotifierService } from './telegram-dueno-notifier.service';
@@ -13,7 +14,14 @@ export class NotificacionesController {
     private service: NotificacionesService,
     private cron: NotificationsCronService,
     private telegramDueno: TelegramDuenoNotifierService,
+    private mail: MailService,
   ) {}
+
+  @Get('mail-status')
+  @Permissions('correos.enviar', 'suscripciones.ver')
+  mailStatus() {
+    return this.mail.getDeliveryStatus();
+  }
 
   @Get('historial')
   @Permissions('correos.enviar', 'suscripciones.ver')
@@ -37,6 +45,12 @@ export class NotificacionesController {
   @Permissions('correos.enviar')
   pendientesTelegramDuenos() {
     return this.telegramDueno.getPendientesTelegramDuenos();
+  }
+
+  @Get('telegram-duenos/estado-duenos')
+  @Permissions('correos.enviar')
+  estadoDuenosTelegram() {
+    return this.telegramDueno.getEstadoDuenosTelegram();
   }
 
   @Get('telegram-duenos/historial')

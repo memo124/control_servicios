@@ -1,9 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { Resend } from 'resend';
-import { ConfigService } from '@nestjs/config';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PlantillasService } from '../plantillas/plantillas.service';
 import { PaymentInfoService } from '../common/payment-info.service';
+import { MailService } from '../common/mail.service';
 import type { SuscripcionDetalle } from '../suscripciones/suscripciones.service';
 
 export interface EmailJobData {
@@ -11,40 +10,6 @@ export interface EmailJobData {
   email: string;
   asunto: string;
   html: string;
-}
-
-@Injectable()
-export class MailService {
-  private resend: Resend | null = null;
-  private from: string;
-  private logger = new Logger(MailService.name);
-
-  constructor(private config: ConfigService) {
-    const apiKey = config.get<string>('RESEND_API_KEY');
-    this.from = config.get<string>('MAIL_FROM_ADDRESS') ?? 'notificaciones@tudominio.com';
-    if (apiKey && !apiKey.startsWith('re_xxxx')) {
-      this.resend = new Resend(apiKey);
-    }
-  }
-
-  async send(to: string, subject: string, html: string) {
-    if (!this.resend) {
-      this.logger.warn(`Resend no configurado. Simulando envío a ${to}`);
-      return { id: 'simulated', simulated: true };
-    }
-    const { data, error } = await this.resend.emails.send({
-      from: this.from,
-      to,
-      subject,
-      html,
-    });
-    if (error) {
-      this.logger.error(`Resend rechazó envío a ${to}: ${error.message}`);
-      throw new Error(error.message);
-    }
-    this.logger.log(`Correo enviado a ${to} (id: ${data?.id ?? 'n/a'})`);
-    return data;
-  }
 }
 
 @Injectable()
@@ -130,6 +95,16 @@ export class NotificacionesService {
     }
 
     const pending = await this.getPendingNotifications();
+    const mailStatus = this.mail.getDeliveryStatus();
+    if (pending.length > 0 && !mailStatus.canSendToAnyRecipient) {
+      const detail =
+        mailStatus.help ??
+        'Verifica dominio en Resend o configura MAIL_PROVIDER=smtp en backend/.env';
+      throw new BadRequestException(
+        `No se pueden enviar correos a clientes con la configuración actual. ${detail}`,
+      );
+    }
+
     let enqueued = 0;
 
     for (const sub of pending) {
@@ -153,13 +128,13 @@ export class NotificacionesService {
     return this.prisma.historialNotificacion.findMany({
       take: limit,
       orderBy: { createdAt: 'desc' },
-      include: {
-        suscripcion: {
-          include: {
-            cliente: true,
-            cuenta: { include: { plataforma: true } },
-          },
-        },
+      select: {
+        id: true,
+        suscripcionId: true,
+        email: true,
+        estadoEnvio: true,
+        respuestaResend: true,
+        createdAt: true,
       },
     });
   }

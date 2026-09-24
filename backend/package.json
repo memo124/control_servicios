@@ -1,6 +1,6 @@
 {
   "name": "backend",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "private": true,
   "scripts": {
     "build": "nest build",
@@ -30,6 +30,7 @@
     "class-validator": "^0.14.1",
     "dotenv": "^16.4.7",
     "ioredis": "^5.6.0",
+    "nodemailer": "^10.0.10",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
@@ -42,6 +43,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.1",
     "@types/node": "^22.13.10",
+    "@types/nodemailer": "^8.0.2",
     "@types/passport-jwt": "^4.0.1",
     "prisma": "^6.5.0",
     "ts-node": "^10.9.2",

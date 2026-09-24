@@ -1,4 +1,4 @@
-# Control Servicios v1.5.4
+# Control Servicios v1.5.5
 
 Plataforma full-stack para administración de suscripciones de streaming, control financiero de ganancias y envío de avisos de cobro por correo electrónico.
 
@@ -121,7 +121,7 @@ Requiere permiso `suscripciones.editar`.
 
 Resumen; detalle completo en [docs/FLOWS.md](docs/FLOWS.md#flujo-telegram-al-grupo-dueños).
 
-Los **clientes** reciben **correo** (Resend). Los **dueños** reciben resúmenes en un **grupo de Telegram** del equipo — todo centralizado en `.env`, **sin Chat ID en la base de datos**.
+Los **clientes** reciben **correo** (Resend con dominio verificado, o **SMTP/Gmail**). Los **dueños** reciben resúmenes en un **grupo de Telegram** del equipo — todo centralizado en `.env`, **sin Chat ID en la base de datos**.
 
 | Canal | Destinatario | Cuándo |
 |-------|--------------|--------|
@@ -147,13 +147,33 @@ TELEGRAM_GROUP_CHAT_ID="-5442163471"   # Id negativo del grupo
 - **Plantillas Telegram** — editar textos (2FA, alertas, prueba) y enviar prueba al grupo
 - **Usuarios** — editar operadores (nombre, email, rol, teléfono de referencia, contraseña)
 
+### Correo a clientes (v1.5.5)
+
+| Modo | Cuándo usarlo |
+|------|----------------|
+| `MAIL_PROVIDER=resend` + dominio verificado | Producción con Resend |
+| `MAIL_PROVIDER=smtp` (Gmail, etc.) | Enviar a **cualquier cliente** sin dominio en Resend |
+| `onboarding@resend.dev` | **Solo pruebas** — llega únicamente al email de tu cuenta Resend |
+
+```env
+MAIL_PROVIDER="smtp"
+SMTP_HOST="smtp.gmail.com"
+SMTP_PORT=587
+SMTP_USER="tu@gmail.com"
+SMTP_PASS="contraseña-de-aplicacion"
+MAIL_FROM_ADDRESS="Control Servicios <tu@gmail.com>"
+```
+
+`GET /api/notificaciones/mail-status` indica si puedes enviar a clientes. Detalle en [docs/FLOWS.md](docs/FLOWS.md#flujo-correo-a-clientes).
+
 ### Enviar alertas manualmente
 
-**Notificaciones → Telegram a dueños** (o cron diario 6:00 AM con los correos).
+**Notificaciones → Telegram a dueños** (o cron diario 6:00 AM con los correos). Cada operador debe **activar alertas en Seguridad** y su **nombre de usuario** debe coincidir con el dueño en Cuentas.
 
 ```http
 POST /api/notificaciones/telegram-duenos/ejecutar
 GET  /api/notificaciones/telegram-duenos/pendientes
+GET  /api/notificaciones/telegram-duenos/estado-duenos
 POST /api/auth/telegram/test-group          # Prueba al grupo
 GET  /api/plantillas-telegram               # Plantillas Telegram (admin)
 PATCH /api/users/:id                        # Editar usuario (admin)
@@ -394,18 +414,21 @@ Ver [docs/THEMES.md](docs/THEMES.md).
 - [docs/FLOWS.md](docs/FLOWS.md) — tareas automáticas, plantillas, cómo agregar flujos
 - [docs/SECURITY.md](docs/SECURITY.md) — autenticación, permisos, pentest
 
-Tras actualizar a **v1.5.4**:
+Tras actualizar a **v1.5.5**:
 
 ```bash
 cd backend
-npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.4.sql
-npm run db:plantilla-correo
-# opcional: npm run db:seed
+npx prisma db execute --schema prisma/schema.prisma --file prisma/sql/changelog-1.5.5.sql
+# si vienes de antes de 1.5.4: también changelog-1.5.4.sql y npm run db:plantilla-correo
 ```
 
 Variables clave en `backend/.env`:
 
 ```env
+MAIL_PROVIDER="smtp"
+SMTP_HOST="smtp.gmail.com"
+SMTP_USER="..."
+SMTP_PASS="..."
 TELEGRAM_BOT_TOKEN="..."
 TELEGRAM_GROUP_CHAT_ID="-5442163471"
 FRONTEND_URL="http://192.168.x.x:5173"

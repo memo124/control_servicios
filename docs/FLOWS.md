@@ -157,13 +157,15 @@ Consultas previas:
 
 3. Filtrar emails válidos (regex básico)
 
+3b. (v1.5.5+) Si mail-status.canSendToAnyRecipient = false → 400, no encolar (Resend @resend.dev)
+
 4. Por cada suscripción:
    a. buildVariables() → datos del cliente + variables `pago_*` desde `.env` (`PaymentInfoService`)
    b. replaceVars(asunto) y replaceVars(cuerpoHtml)
    c. Encolar { suscripcionId, email, asunto, html }
 
-5. Worker EmailProcessor.process()
-   a. MailService.send() → Resend API
+5. Worker EmailProcessor.process() (o envío en línea si Redis no disponible)
+   a. MailService.send() → Resend **o** SMTP (`MAIL_PROVIDER`)
    b. INSERT historial_notificaciones (estado_envio, respuesta_resend)
 ```
 
@@ -208,9 +210,19 @@ El seed también lee el mismo archivo HTML al ejecutar `npm run db:seed`.
 ### Configuración `.env`
 
 ```env
+MAIL_PROVIDER="resend"   # o "smtp"
+MAIL_FROM_ADDRESS="Notificaciones <notificaciones@tudominio.com>"
+
+# Resend (dominio verificado en resend.com/domains)
 RESEND_API_KEY="re_..."
-MAIL_FROM_ADDRESS="Control Servicios <onboarding@resend.dev>"  # pruebas
-# MAIL_FROM_ADDRESS="Notificaciones <notificaciones@tudominio.com>"  # producción
+# Pruebas: onboarding@resend.dev → SOLO al email de tu cuenta Resend
+
+# SMTP (Gmail: contraseña de aplicación, 2FA activa)
+# MAIL_PROVIDER="smtp"
+# SMTP_HOST="smtp.gmail.com"
+# SMTP_PORT=587
+# SMTP_USER="tu@gmail.com"
+# SMTP_PASS="xxxx"
 
 PAYMENT_BANK_NAME="Banco Industrial"
 PAYMENT_BANK_ACCOUNT="1234567890"
@@ -219,7 +231,7 @@ PAYMENT_PROOF_EMAIL="pagos@tudominio.com"
 PAYMENT_PROOF_PHONE="+502 1234-5678"
 ```
 
-Si `RESEND_API_KEY` no está configurado → envío **simulado** (log, sin API).
+Si no hay proveedor configurado → envío **simulado** (log, sin API). `GET /api/notificaciones/mail-status` resume el modo activo.
 
 ### Auditoría
 
@@ -253,6 +265,7 @@ El bot debe estar **en el grupo** con permiso de enviar mensajes.
 3. Agrupar por dueno_cuenta (nombre del titular de la cuenta)
 
 4. SELECT users WHERE alertasDuenoTelegramActivo = true AND status = active
+   (UI: GET /api/notificaciones/telegram-duenos/estado-duenos)
 
 5. Por cada operador con suscripciones en su grupo (user.name = dueno_cuenta):
    a. buildMessage(duenoNombre, subs):
@@ -452,7 +465,9 @@ Documentar en `.env.example` y [SECURITY.md](./SECURITY.md) si introduce secreto
 | GET | `/api/notificaciones/pendientes` | Clientes pendientes de correo |
 | POST | `/api/notificaciones/ejecutar` | Encolar/enviar correos |
 | GET | `/api/notificaciones/historial` | Historial correos |
+| GET | `/api/notificaciones/mail-status` | Modo correo (Resend sandbox / SMTP) |
 | GET | `/api/notificaciones/telegram-duenos/pendientes` | Dueños con alertas + conteos |
+| GET | `/api/notificaciones/telegram-duenos/estado-duenos` | Dueños con pendientes y alertas on/off |
 | POST | `/api/notificaciones/telegram-duenos/ejecutar` | Enviar resúmenes al grupo |
 | GET | `/api/notificaciones/telegram-duenos/historial` | Historial Telegram |
 | POST | `/api/auth/telegram/test-group` | Prueba al grupo |

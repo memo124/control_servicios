@@ -14,6 +14,13 @@ export interface DuenoTelegramPendiente {
   total: number;
 }
 
+export interface DuenoTelegramEstado {
+  duenoNombre: string;
+  total: number;
+  alertasUsuarioActiva: boolean;
+  usuarioExiste: boolean;
+}
+
 @Injectable()
 export class TelegramDuenoNotifierService {
   private logger = new Logger(TelegramDuenoNotifierService.name);
@@ -71,6 +78,33 @@ export class TelegramDuenoNotifierService {
     }
 
     return pendientes;
+  }
+
+  /** Dueños con clientes en gracia/vencidos y si su usuario tiene alertas activas (nombre = dueno_nombre en cuentas). */
+  async getEstadoDuenosTelegram(): Promise<DuenoTelegramEstado[]> {
+    const rows = await this.getSuscripcionesParaDuenos();
+    const byDueno = new Map<string, number>();
+    for (const r of rows) {
+      byDueno.set(r.dueno_cuenta, (byDueno.get(r.dueno_cuenta) ?? 0) + 1);
+    }
+
+    const operadores = await this.prisma.user.findMany({
+      where: { status: 'active' },
+      select: { name: true, alertasDuenoTelegramActivo: true },
+    });
+    const byName = new Map(operadores.map((u) => [u.name, u]));
+
+    return [...byDueno.entries()]
+      .map(([duenoNombre, total]) => {
+        const user = byName.get(duenoNombre);
+        return {
+          duenoNombre,
+          total,
+          alertasUsuarioActiva: user?.alertasDuenoTelegramActivo ?? false,
+          usuarioExiste: Boolean(user),
+        };
+      })
+      .sort((a, b) => b.total - a.total);
   }
 
   async buildMessage(duenoNombre: string, subs: SuscripcionDetalle[]): Promise<string> {

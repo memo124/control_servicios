@@ -399,6 +399,13 @@ async function main() {
 
   const changelogEntries = [
     {
+      version: '1.5.5',
+      titulo: 'Correo SMTP y mejoras en Notificaciones',
+      descripcion:
+        'MAIL_PROVIDER=smtp (Gmail). mail-status, estado Telegram dueños. Fix historial correos huérfanos.',
+      tipo: 'patch',
+    },
+    {
       version: '1.5.4',
       titulo: 'QR escaneable, datos de pago en correos y login móvil',
       descripcion:
